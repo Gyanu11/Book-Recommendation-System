@@ -1,0 +1,623 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="genre-books-container">
+    <!-- Page Header with Breadcrumb -->
+    <div class="page-header">
+        <nav class="breadcrumb-nav">
+            <a href="{{ url_for('main.index') }}" class="breadcrumb-link">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <a href="{{ url_for('main.all_genres') }}" class="breadcrumb-link">
+                <span>Genres</span>
+            </a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">{{ genre }}</span>
+        </nav>
+        
+        <div class="header-content">
+            <div class="header-badge">
+                <i class="fas fa-layer-group"></i>
+                <span>Genre</span>
+            </div>
+            <h1 class="page-title">{{ genre }}</h1>
+            <p class="page-description">{{ books.total }} book{{ 's' if books.total != 1 else '' }} available in this category.</p>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <a href="{{ url_for('main.all_genres') }}" class="btn-outline">
+                <i class="fas fa-arrow-left"></i>
+                <span>All Genres</span>
+            </a>
+        </div>
+    </div>
+
+    {% if books.items %}
+    <!-- Books Section -->
+    <div class="books-section">
+        <!-- Results Info -->
+        <div class="results-info">
+            <span class="results-text">
+                Showing <strong>{{ ((books.page - 1) * books.per_page) + 1 }}-{{ ((books.page - 1) * books.per_page) + books.items|length }}</strong> of <strong>{{ books.total }}</strong> books
+            </span>
+        </div>
+
+        <!-- Books Grid -->
+        <div class="books-grid">
+            {% for book in books.items %}
+            <a href="{{ url_for('main.book_details', book_id=book.id) }}" class="book-card">
+                <div class="book-cover-wrapper">
+                    <img src="{{ book.cover_url }}" alt="{{ book.title }}" class="book-cover">
+                    <div class="book-overlay">
+                        <span class="view-details">
+                            <i class="fas fa-eye"></i>
+                            View Details
+                        </span>
+                    </div>
+                </div>
+                <div class="book-content">
+                    <h3 class="book-title">{{ book.title }}</h3>
+                    <p class="book-author">
+                        <i class="fas fa-user-pen"></i>
+                        {{ book.author }}
+                    </p>
+                    <div class="book-meta">
+                        <span class="book-price">${{ "%.2f"|format(book.price) }}</span>
+                        <span class="book-genre-tag">{{ book.genre }}</span>
+                    </div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination -->
+        {% if books.pages > 1 %}
+        <div class="pagination-container">
+            <div class="pagination">
+                {% if books.has_prev %}
+                <a href="{{ url_for('main.books_by_genre', genre=genre, page=books.prev_num) }}" class="pagination-btn pagination-nav">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Previous</span>
+                </a>
+                {% else %}
+                <span class="pagination-btn pagination-nav disabled">
+                    <i class="fas fa-chevron-left"></i>
+                    <span>Previous</span>
+                </span>
+                {% endif %}
+
+                <div class="pagination-pages">
+                    {% for page_num in books.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                        {% if page_num %}
+                            {% if page_num == books.page %}
+                            <span class="pagination-btn active">{{ page_num }}</span>
+                            {% else %}
+                            <a href="{{ url_for('main.books_by_genre', genre=genre, page=page_num) }}" class="pagination-btn">{{ page_num }}</a>
+                            {% endif %}
+                        {% else %}
+                        <span class="pagination-ellipsis">...</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+
+                {% if books.has_next %}
+                <a href="{{ url_for('main.books_by_genre', genre=genre, page=books.next_num) }}" class="pagination-btn pagination-nav">
+                    <span>Next</span>
+                    <i class="fas fa-chevron-right"></i>
+                </a>
+                {% else %}
+                <span class="pagination-btn pagination-nav disabled">
+                    <span>Next</span>
+                    <i class="fas fa-chevron-right"></i>
+                </span>
+                {% endif %}
+            </div>
+
+            <div class="pagination-info">
+                Page <strong>{{ books.page }}</strong> of <strong>{{ books.pages }}</strong>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    {% else %}
+    <!-- Empty State -->
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-book-open"></i>
+        </div>
+        <h3 class="empty-title">No Books Found</h3>
+        <p class="empty-description">There are no books in the "{{ genre }}" category yet. Check back later or browse other genres.</p>
+        <div class="empty-actions">
+            <a href="{{ url_for('main.all_genres') }}" class="btn-primary">
+                <i class="fas fa-layer-group"></i>
+                Browse All Genres
+            </a>
+            <a href="{{ url_for('main.index') }}" class="btn-outline">
+                <i class="fas fa-home"></i>
+                Go Home
+            </a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .genre-books-container {
+        padding: 32px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        flex-wrap: wrap;
+    }
+
+    .breadcrumb-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted-foreground);
+        font-size: 13px;
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: calc(var(--radius) - 2px);
+        transition: all 0.15s ease;
+    }
+
+    .breadcrumb-link:hover {
+        color: var(--foreground);
+        background: var(--secondary);
+    }
+
+    .breadcrumb-link i {
+        font-size: 11px;
+    }
+
+    .breadcrumb-separator {
+        font-size: 10px;
+        color: var(--muted-foreground);
+        opacity: 0.5;
+    }
+
+    .breadcrumb-current {
+        font-size: 13px;
+        color: var(--foreground);
+        font-weight: 500;
+    }
+
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+
+    .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--ring) 100%);
+        border-radius: 9999px;
+        width: fit-content;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--primary-foreground);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--foreground);
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+
+    .page-description {
+        font-size: 15px;
+        color: var(--muted-foreground);
+        margin: 0;
+    }
+
+    /* Action Bar */
+    .action-bar {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-outline {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        background: transparent;
+        color: var(--foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+
+    .btn-outline:hover {
+        background: var(--secondary);
+        border-color: var(--ring);
+    }
+
+    .btn-outline i {
+        font-size: 12px;
+    }
+
+    /* Books Section */
+    .books-section {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+    }
+
+    .results-info {
+        padding: 12px 16px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+    }
+
+    .results-text {
+        font-size: 13px;
+        color: var(--muted-foreground);
+    }
+
+    .results-text strong {
+        color: var(--foreground);
+        font-weight: 600;
+    }
+
+    /* Books Grid */
+    .books-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 20px;
+    }
+
+    /* Book Card */
+    .book-card {
+        display: flex;
+        flex-direction: column;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        overflow: hidden;
+        text-decoration: none;
+        transition: all 0.2s ease;
+    }
+
+    .book-card:hover {
+        border-color: var(--ring);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .book-card:hover .book-overlay {
+        opacity: 1;
+    }
+
+    .book-cover-wrapper {
+        position: relative;
+        height: 240px;
+        overflow: hidden;
+        background: var(--secondary);
+    }
+
+    .book-cover {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: transform 0.3s ease;
+    }
+
+    .book-card:hover .book-cover {
+        transform: scale(1.05);
+    }
+
+    .book-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    .view-details {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-radius: var(--radius);
+        font-size: 12px;
+        font-weight: 500;
+    }
+
+    .book-content {
+        padding: 16px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .book-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: var(--foreground);
+        margin: 0;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .book-author {
+        font-size: 12px;
+        color: var(--muted-foreground);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .book-author i {
+        font-size: 10px;
+        opacity: 0.7;
+    }
+
+    .book-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-top: auto;
+        padding-top: 8px;
+        border-top: 1px solid var(--border);
+    }
+
+    .book-price {
+        font-size: 15px;
+        font-weight: 700;
+        color: var(--primary);
+    }
+
+    .book-genre-tag {
+        font-size: 10px;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        background: var(--secondary);
+        padding: 4px 8px;
+        border-radius: calc(var(--radius) - 2px);
+        text-transform: capitalize;
+    }
+
+    /* Pagination */
+    .pagination-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+        margin-top: 16px;
+    }
+
+    .pagination {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .pagination-pages {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .pagination-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 40px;
+        height: 40px;
+        padding: 0 12px;
+        background: var(--card);
+        color: var(--foreground);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        font-size: 13px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+
+    .pagination-btn:hover:not(.active):not(.disabled) {
+        background: var(--secondary);
+        border-color: var(--ring);
+    }
+
+    .pagination-btn.active {
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-color: var(--primary);
+    }
+
+    .pagination-btn.disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .pagination-nav {
+        gap: 6px;
+    }
+
+    .pagination-nav i {
+        font-size: 11px;
+    }
+
+    .pagination-ellipsis {
+        padding: 0 8px;
+        color: var(--muted-foreground);
+    }
+
+    .pagination-info {
+        font-size: 12px;
+        color: var(--muted-foreground);
+    }
+
+    .pagination-info strong {
+        color: var(--foreground);
+    }
+
+    /* Empty State */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 64px 32px;
+        text-align: center;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--secondary);
+        border-radius: 50%;
+        margin-bottom: 24px;
+    }
+
+    .empty-icon i {
+        font-size: 32px;
+        color: var(--muted-foreground);
+    }
+
+    .empty-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--foreground);
+        margin: 0 0 8px 0;
+    }
+
+    .empty-description {
+        font-size: 14px;
+        color: var(--muted-foreground);
+        margin: 0 0 24px 0;
+        max-width: 400px;
+    }
+
+    .empty-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-radius: var(--radius);
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+
+    .btn-primary:hover {
+        background: var(--ring);
+        transform: translateY(-1px);
+    }
+
+    .btn-primary i {
+        font-size: 12px;
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .genre-books-container {
+            padding: 20px;
+        }
+
+        .page-title {
+            font-size: 26px;
+        }
+
+        .books-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .book-cover-wrapper {
+            height: 180px;
+        }
+
+        .book-content {
+            padding: 12px;
+        }
+
+        .book-title {
+            font-size: 13px;
+        }
+
+        .pagination {
+            gap: 4px;
+        }
+
+        .pagination-btn {
+            min-width: 36px;
+            height: 36px;
+            font-size: 12px;
+        }
+
+        .pagination-nav span {
+            display: none;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .books-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .book-cover-wrapper {
+            height: 200px;
+        }
+    }
+</style>
+{% endblock %}

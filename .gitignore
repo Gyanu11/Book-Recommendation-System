@@ -1,0 +1,26 @@
+# Environment Variables
+.env
+
+# Python Virtual Environments
+venv/
+env/
+ENV/
+
+# Python Cache & Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Flask & SQLite/MySQL Instances
+instance/
+*.db
+*.sqlite3
+
+# IDE & Editor Configs
+.vscode/
+.idea/
+.DS_Store
+
+# Logs
+*.log

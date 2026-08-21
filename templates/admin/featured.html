@@ -1,0 +1,813 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Featured Books{% endblock %}
+{% block header_title %}Featured Books{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* shadcn/ui Data Table Style */
+    .data-table-container {
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
+        border-radius: calc(var(--radius) + 4px);
+        overflow: hidden;
+        margin-bottom: 20px;
+    }
+    
+    .data-table-header {
+        padding: 16px 20px;
+        border-bottom: 1px solid hsl(var(--border));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .data-table-title {
+        font-size: 14px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+    }
+    
+    .data-table-desc {
+        font-size: 12px;
+        color: hsl(var(--muted-foreground));
+        margin-top: 2px;
+    }
+    
+    /* Table styles */
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    
+    .data-table th {
+        padding: 12px 16px;
+        text-align: left;
+        font-size: 12px;
+        font-weight: 500;
+        color: hsl(var(--muted-foreground));
+        background: hsl(var(--secondary) / 0.5);
+        border-bottom: 1px solid hsl(var(--border));
+    }
+    
+    .data-table td {
+        padding: 12px 16px;
+        font-size: 13px;
+        color: hsl(var(--foreground));
+        border-bottom: 1px solid hsl(var(--border));
+    }
+    
+    .data-table tr:last-child td {
+        border-bottom: none;
+    }
+    
+    .data-table tr {
+        cursor: pointer;
+        transition: background 0.15s;
+    }
+    
+    .data-table tr:hover {
+        background: hsl(var(--accent) / 0.5);
+    }
+    
+    .data-table tr.featured-row {
+        background: rgba(234, 179, 8, 0.05);
+    }
+    
+    .data-table tr.featured-row:hover {
+        background: rgba(234, 179, 8, 0.1);
+    }
+    
+    /* Cover */
+    .book-cover {
+        width: 40px;
+        height: 54px;
+        border-radius: 4px;
+        object-fit: cover;
+        background: hsl(var(--secondary));
+    }
+    
+    .book-cell {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .book-title-cell {
+        font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+    
+    .book-author-cell {
+        color: hsl(var(--muted-foreground));
+    }
+    
+    /* Badge */
+    .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        border-radius: 9999px;
+        padding: 2px 10px;
+        font-size: 11px;
+        font-weight: 500;
+        line-height: 1.4;
+    }
+    
+    .badge-yellow {
+        background: rgba(234, 179, 8, 0.15);
+        color: #eab308;
+        border: 1px solid rgba(234, 179, 8, 0.2);
+    }
+    
+    .badge-blue {
+        background: rgba(59, 130, 246, 0.1);
+        color: #3b82f6;
+        border: 1px solid rgba(59, 130, 246, 0.2);
+    }
+    
+    .badge-green {
+        background: rgba(34, 197, 94, 0.1);
+        color: #22c55e;
+        border: 1px solid rgba(34, 197, 94, 0.2);
+    }
+    
+    /* Action button */
+    .action-btn {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: 1px solid hsl(var(--border));
+        background: transparent;
+        color: hsl(var(--muted-foreground));
+    }
+    
+    .action-btn:hover {
+        background: hsl(var(--accent));
+        color: hsl(var(--foreground));
+    }
+    
+    .action-btn.primary:hover {
+        background: hsl(var(--primary) / 0.1);
+        border-color: hsl(var(--primary) / 0.3);
+        color: hsl(var(--primary));
+    }
+    
+    /* Dialog/Modal */
+    .dialog-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(4px);
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.2s ease;
+    }
+    
+    .dialog-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .dialog-content {
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
+        border-radius: calc(var(--radius) + 4px);
+        width: 100%;
+        max-width: 420px;
+        max-height: 85vh;
+        overflow-y: auto;
+        transform: scale(0.95);
+        transition: transform 0.2s ease;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    .dialog-overlay.active .dialog-content {
+        transform: scale(1);
+    }
+    
+    .dialog-header {
+        padding: 20px 24px;
+        border-bottom: 1px solid hsl(var(--border));
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .dialog-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+    }
+    
+    .dialog-close {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        border: none;
+        color: hsl(var(--muted-foreground));
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    
+    .dialog-close:hover {
+        background: hsl(var(--accent));
+        color: hsl(var(--foreground));
+    }
+    
+    .dialog-body {
+        padding: 24px;
+    }
+    
+    /* Book profile */
+    .book-profile {
+        display: flex;
+        gap: 16px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid hsl(var(--border));
+        margin-bottom: 20px;
+    }
+    
+    .book-profile-cover {
+        width: 80px;
+        height: 110px;
+        border-radius: 6px;
+        object-fit: cover;
+        background: hsl(var(--secondary));
+        flex-shrink: 0;
+    }
+    
+    .book-profile-info {
+        flex: 1;
+    }
+    
+    .book-profile-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+        margin-bottom: 4px;
+        line-height: 1.3;
+    }
+    
+    .book-profile-author {
+        font-size: 13px;
+        color: hsl(var(--muted-foreground));
+        margin-bottom: 10px;
+    }
+    
+    .book-profile-badges {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+    
+    /* Info list */
+    .info-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .info-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .info-icon-box {
+        width: 32px;
+        height: 32px;
+        border-radius: 6px;
+        background: hsl(var(--accent));
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    
+    .info-icon-box i {
+        color: hsl(var(--primary));
+        font-size: 12px;
+    }
+    
+    .info-text {
+        flex: 1;
+    }
+    
+    .info-label {
+        font-size: 10px;
+        color: hsl(var(--muted-foreground));
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .info-value {
+        font-size: 13px;
+        color: hsl(var(--foreground));
+        margin-top: 2px;
+    }
+    
+    /* Form */
+    .form-group {
+        margin-bottom: 14px;
+    }
+    
+    .form-label {
+        display: block;
+        font-size: 12px;
+        font-weight: 500;
+        color: hsl(var(--foreground));
+        margin-bottom: 6px;
+    }
+    
+    .form-input {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid hsl(var(--input));
+        border-radius: var(--radius);
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-size: 13px;
+        font-family: inherit;
+        transition: all 0.15s;
+    }
+    
+    .form-input:focus {
+        outline: none;
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.15);
+    }
+    
+    /* Toggle */
+    .toggle-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 14px;
+        background: hsl(var(--accent));
+        border-radius: var(--radius);
+        margin-bottom: 14px;
+    }
+    
+    .toggle-label {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+    }
+    
+    .toggle-label i {
+        color: #eab308;
+    }
+    
+    .toggle-switch {
+        position: relative;
+        width: 40px;
+        height: 22px;
+        background: hsl(var(--input));
+        border-radius: 9999px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .toggle-switch.active {
+        background: #eab308;
+    }
+    
+    .toggle-switch::after {
+        content: '';
+        position: absolute;
+        top: 2px;
+        left: 2px;
+        width: 18px;
+        height: 18px;
+        background: white;
+        border-radius: 50%;
+        transition: all 0.2s;
+    }
+    
+    .toggle-switch.active::after {
+        left: 20px;
+    }
+    
+    /* Footer */
+    .dialog-footer {
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        padding-top: 20px;
+        border-top: 1px solid hsl(var(--border));
+        margin-top: 20px;
+    }
+    
+    .btn-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: 1px solid hsl(var(--border));
+        background: transparent;
+        color: hsl(var(--muted-foreground));
+    }
+    
+    .btn-icon:hover {
+        background: hsl(var(--accent));
+        color: hsl(var(--foreground));
+    }
+    
+    .btn-icon.yellow:hover {
+        background: rgba(234, 179, 8, 0.1);
+        border-color: rgba(234, 179, 8, 0.3);
+        color: #eab308;
+    }
+    
+    .btn-icon.primary:hover {
+        background: hsl(var(--primary) / 0.1);
+        border-color: hsl(var(--primary) / 0.3);
+        color: hsl(var(--primary));
+    }
+    
+    .btn-icon.danger:hover {
+        background: rgba(239, 68, 68, 0.1);
+        border-color: rgba(239, 68, 68, 0.3);
+        color: #ef4444;
+    }
+    
+    .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: var(--radius);
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        border: none;
+        text-decoration: none;
+    }
+    
+    .btn-primary {
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+    }
+    
+    .btn-primary:hover {
+        opacity: 0.9;
+    }
+    
+    .btn-full {
+        width: 100%;
+    }
+    
+    /* Section header */
+    .section-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+        padding: 14px 18px;
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
+        border-radius: calc(var(--radius) + 4px);
+    }
+    
+    .section-header i {
+        color: #eab308;
+        font-size: 14px;
+    }
+    
+    .section-header span {
+        font-size: 13px;
+        font-weight: 600;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Info Card -->
+<div class="data-table-container" style="padding: 16px 20px; margin-bottom: 20px;">
+    <div style="display: flex; align-items: center; gap: 12px;">
+        <div style="width: 40px; height: 40px; background: rgba(234, 179, 8, 0.15); border-radius: 10px; display: flex; align-items: center; justify-content: center;">
+            <i class="fas fa-star" style="color: #eab308; font-size: 16px;"></i>
+        </div>
+        <div>
+            <div style="font-size: 14px; font-weight: 600;">Manage Featured Books</div>
+            <div style="font-size: 12px; color: hsl(var(--muted-foreground));">Click on a row to view details, or use the edit button to modify</div>
+        </div>
+    </div>
+</div>
+
+<!-- Featured Books Section -->
+{% if books %}
+<div class="section-header">
+    <i class="fas fa-star"></i>
+    <span>Featured Books ({{ books|length }})</span>
+</div>
+<div class="data-table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Genre</th>
+                <th>Price</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in books %}
+            <tr class="featured-row" onclick="openViewDialog({{ book.id }})">
+                <td>
+                    <div class="book-cell">
+                        <img src="{{ book.cover_url }}" alt="{{ book.title }}" class="book-cover" onerror="this.src='https://placehold.co/40x54?text=No'">
+                        <div>
+                            <div class="book-title-cell">{{ book.title }}</div>
+                            <div class="book-author-cell">{{ book.author }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge badge-blue">{{ book.genre }}</span></td>
+                <td><span class="badge badge-green">${{ "%.2f"|format(book.price) }}</span></td>
+                <td onclick="event.stopPropagation();">
+                    <button class="action-btn primary" onclick="openEditDialog({{ book.id }})" title="Edit">
+                        <i class="fas fa-pen" style="font-size: 11px;"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
+<!-- All Books Section -->
+<div class="section-header">
+    <i class="fas fa-book" style="color: hsl(var(--primary));"></i>
+    <span>All Books ({{ all_books|length }})</span>
+</div>
+<div class="data-table-container">
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>Book</th>
+                <th>Genre</th>
+                <th>Price</th>
+                <th>Featured</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for book in all_books %}
+            <tr {% if book.is_featured %}class="featured-row"{% endif %} onclick="openViewDialog({{ book.id }})">
+                <td>
+                    <div class="book-cell">
+                        <img src="{{ book.cover_url }}" alt="{{ book.title }}" class="book-cover" onerror="this.src='https://placehold.co/40x54?text=No'">
+                        <div>
+                            <div class="book-title-cell">{{ book.title }}</div>
+                            <div class="book-author-cell">{{ book.author }}</div>
+                        </div>
+                    </div>
+                </td>
+                <td><span class="badge badge-blue">{{ book.genre }}</span></td>
+                <td><span class="badge badge-green">${{ "%.2f"|format(book.price) }}</span></td>
+                <td>
+                    {% if book.is_featured %}
+                    <span class="badge badge-yellow"><i class="fas fa-star"></i> Yes</span>
+                    {% else %}
+                    <span style="color: hsl(var(--muted-foreground));">—</span>
+                    {% endif %}
+                </td>
+                <td onclick="event.stopPropagation();">
+                    <button class="action-btn primary" onclick="openEditDialog({{ book.id }})" title="Edit">
+                        <i class="fas fa-pen" style="font-size: 11px;"></i>
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="margin-top: 20px;">
+    <a href="{{ url_for('admin.dashboard') }}" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; background: hsl(var(--secondary)); color: hsl(var(--foreground)); border-radius: var(--radius); text-decoration: none; font-size: 12px;">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+    </a>
+</div>
+
+<!-- View Dialog -->
+<div class="dialog-overlay" id="viewDialog">
+    <div class="dialog-content">
+        <div class="dialog-header">
+            <span class="dialog-title">Book Details</span>
+            <button class="dialog-close" onclick="closeViewDialog()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="dialog-body" id="viewDialogContent"></div>
+    </div>
+</div>
+
+<!-- Edit Dialog -->
+<div class="dialog-overlay" id="editDialog">
+    <div class="dialog-content">
+        <div class="dialog-header">
+            <span class="dialog-title">Edit Book</span>
+            <button class="dialog-close" onclick="closeEditDialog()">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="dialog-body" id="editDialogContent"></div>
+    </div>
+</div>
+
+<script>
+const booksData = {
+    {% for book in all_books %}
+    {{ book.id }}: {
+        id: {{ book.id }},
+        title: "{{ book.title|e }}",
+        author: "{{ book.author|e }}",
+        genre: "{{ book.genre|e }}",
+        cover_url: "{{ book.cover_url|e }}",
+        price: {{ book.price }},
+        pdf_url: "{{ book.pdf_url or '' }}",
+        is_featured: {{ 'true' if book.is_featured else 'false' }},
+        editUrl: "{{ url_for('admin.edit_book', book_id=book.id) }}",
+        deleteUrl: "{{ url_for('admin.delete_book', book_id=book.id) }}",
+        toggleFeaturedUrl: "{{ url_for('admin.toggle_featured', book_id=book.id) }}"
+    },
+    {% endfor %}
+};
+
+function openViewDialog(bookId) {
+    const book = booksData[bookId];
+    if (!book) return;
+    
+    const content = `
+        <div class="book-profile">
+            <img src="${book.cover_url}" alt="${book.title}" class="book-profile-cover" onerror="this.src='https://placehold.co/80x110?text=No'">
+            <div class="book-profile-info">
+                <div class="book-profile-title">${book.title}</div>
+                <div class="book-profile-author">by ${book.author}</div>
+                <div class="book-profile-badges">
+                    ${book.is_featured ? '<span class="badge badge-yellow"><i class="fas fa-star"></i> Featured</span>' : ''}
+                    <span class="badge badge-blue">${book.genre}</span>
+                    <span class="badge badge-green">$${book.price.toFixed(2)}</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="info-list">
+            <div class="info-row">
+                <div class="info-icon-box"><i class="fas fa-user"></i></div>
+                <div class="info-text">
+                    <div class="info-label">Author</div>
+                    <div class="info-value">${book.author}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-icon-box"><i class="fas fa-tag"></i></div>
+                <div class="info-text">
+                    <div class="info-label">Genre</div>
+                    <div class="info-value">${book.genre}</div>
+                </div>
+            </div>
+            <div class="info-row">
+                <div class="info-icon-box"><i class="fas fa-dollar-sign"></i></div>
+                <div class="info-text">
+                    <div class="info-label">Price</div>
+                    <div class="info-value">$${book.price.toFixed(2)}</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="dialog-footer">
+            <form method="POST" action="${book.toggleFeaturedUrl}" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-icon yellow" title="${book.is_featured ? 'Remove from Featured' : 'Add to Featured'}">
+                    <i class="fas fa-star"></i>
+                </button>
+            </form>
+            <button class="btn-icon primary" onclick="closeViewDialog(); openEditDialog(${book.id});" title="Edit">
+                <i class="fas fa-pen"></i>
+            </button>
+            <form method="POST" action="${book.deleteUrl}" style="display: inline;" onsubmit="return confirm('Delete this book?');">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="btn-icon danger" title="Delete">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </form>
+        </div>
+    `;
+    
+    document.getElementById('viewDialogContent').innerHTML = content;
+    document.getElementById('viewDialog').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeViewDialog() {
+    document.getElementById('viewDialog').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function openEditDialog(bookId) {
+    const book = booksData[bookId];
+    if (!book) return;
+    
+    const content = `
+        <div class="book-profile">
+            <img src="${book.cover_url}" alt="${book.title}" class="book-profile-cover" onerror="this.src='https://placehold.co/80x110?text=No'">
+            <div class="book-profile-info">
+                <div class="book-profile-title">${book.title}</div>
+                <div class="book-profile-author">by ${book.author}</div>
+            </div>
+        </div>
+        
+        <form method="POST" action="${book.editUrl}" id="editForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="is_featured" id="editIsFeatured" value="${book.is_featured ? '1' : '0'}">
+            
+            <div class="form-group">
+                <label class="form-label">Cover URL</label>
+                <input type="url" name="cover_url" class="form-input" value="${book.cover_url}" placeholder="https://example.com/cover.jpg">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">Price ($)</label>
+                <input type="number" name="price" class="form-input" value="${book.price}" step="0.01" min="0" placeholder="0.00">
+            </div>
+            
+            <div class="form-group">
+                <label class="form-label">PDF URL (optional)</label>
+                <input type="url" name="pdf_url" class="form-input" value="${book.pdf_url}" placeholder="https://example.com/book.pdf">
+            </div>
+            
+            <div class="toggle-row" onclick="toggleFeatured()">
+                <div class="toggle-label">
+                    <i class="fas fa-star"></i>
+                    <span>Featured</span>
+                </div>
+                <div class="toggle-switch ${book.is_featured ? 'active' : ''}" id="featuredToggle"></div>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-full">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </form>
+    `;
+    
+    document.getElementById('editDialogContent').innerHTML = content;
+    document.getElementById('editDialog').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeEditDialog() {
+    document.getElementById('editDialog').classList.remove('active');
+    document.body.style.overflow = '';
+}
+
+function toggleFeatured() {
+    const toggle = document.getElementById('featuredToggle');
+    const input = document.getElementById('editIsFeatured');
+    toggle.classList.toggle('active');
+    input.value = toggle.classList.contains('active') ? '1' : '0';
+}
+
+document.getElementById('viewDialog').addEventListener('click', function(e) {
+    if (e.target === this) closeViewDialog();
+});
+
+document.getElementById('editDialog').addEventListener('click', function(e) {
+    if (e.target === this) closeEditDialog();
+});
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeViewDialog();
+        closeEditDialog();
+    }
+});
+</script>
+{% endblock %}

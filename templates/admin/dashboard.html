@@ -1,0 +1,426 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Dashboard{% endblock %}
+{% block header_title %}Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .dashboard-header {
+        margin-bottom: 24px;
+    }
+    
+    .dashboard-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+    }
+    
+    /* Minimal Stats */
+    .stats-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+    }
+    
+    .stat-item {
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
+        border-radius: var(--radius);
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+    
+    .stat-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+    }
+    
+    .stat-icon.green { background: rgba(34, 197, 94, 0.1); color: #22c55e; }
+    .stat-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .stat-icon.orange { background: rgba(249, 115, 22, 0.1); color: #f97316; }
+    .stat-icon.purple { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+    
+    .stat-content {
+        flex: 1;
+    }
+    
+    .stat-value {
+        font-size: 20px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+    }
+    
+    .stat-label {
+        font-size: 11px;
+        color: hsl(var(--muted-foreground));
+    }
+    
+    /* Quick Actions */
+    .actions-row {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
+        border-radius: var(--radius);
+        text-decoration: none;
+        transition: all 0.15s;
+    }
+    
+    .action-btn:hover {
+        border-color: hsl(var(--primary) / 0.5);
+        background: hsl(var(--accent));
+    }
+    
+    .action-btn i {
+        font-size: 14px;
+        color: hsl(var(--primary));
+    }
+    
+    .action-btn span {
+        font-size: 13px;
+        font-weight: 500;
+        color: hsl(var(--foreground));
+    }
+    
+    /* Cards */
+    .card {
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
+        border-radius: var(--radius);
+    }
+    
+    .card-header {
+        padding: 14px 16px;
+        border-bottom: 1px solid hsl(var(--border));
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .card-title {
+        font-size: 13px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+    }
+    
+    .card-link {
+        font-size: 11px;
+        color: hsl(var(--primary));
+        text-decoration: none;
+    }
+    
+    .card-body {
+        padding: 16px;
+    }
+    
+    /* Grid */
+    .content-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+    }
+    
+    /* Book List */
+    .book-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        border-radius: 6px;
+        transition: background 0.15s;
+    }
+    
+    .book-row:hover {
+        background: hsl(var(--accent));
+    }
+    
+    .book-cover {
+        width: 32px;
+        height: 44px;
+        border-radius: 3px;
+        object-fit: cover;
+        background: hsl(var(--secondary));
+    }
+    
+    .book-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .book-title {
+        font-size: 12px;
+        font-weight: 500;
+        color: hsl(var(--foreground));
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .book-author {
+        font-size: 11px;
+        color: hsl(var(--muted-foreground));
+    }
+    
+    .book-price {
+        font-size: 12px;
+        font-weight: 600;
+        color: #22c55e;
+    }
+    
+    /* Activity */
+    .activity-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 0;
+    }
+    
+    .activity-icon {
+        width: 28px;
+        height: 28px;
+        border-radius: 6px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 11px;
+    }
+    
+    .activity-icon.blue { background: rgba(59, 130, 246, 0.1); color: #3b82f6; }
+    .activity-icon.purple { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+    .activity-icon.orange { background: rgba(249, 115, 22, 0.1); color: #f97316; }
+    .activity-icon.yellow { background: rgba(234, 179, 8, 0.1); color: #eab308; }
+    
+    .activity-text {
+        flex: 1;
+        font-size: 12px;
+        color: hsl(var(--foreground));
+    }
+    
+    .activity-sub {
+        font-size: 10px;
+        color: hsl(var(--muted-foreground));
+    }
+    
+    .empty {
+        text-align: center;
+        padding: 24px;
+        color: hsl(var(--muted-foreground));
+        font-size: 12px;
+    }
+    
+    @media (max-width: 1024px) {
+        .stats-row, .actions-row {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        .content-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    @media (max-width: 640px) {
+        .stats-row, .actions-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="dashboard-header">
+    <div class="dashboard-title">Overview</div>
+</div>
+
+<!-- Stats -->
+<div class="stats-row">
+    <div class="stat-item">
+        <div class="stat-icon green"><i class="fas fa-dollar-sign"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">${{ "%.2f"|format(total_revenue) }}</div>
+            <div class="stat-label">Revenue</div>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon blue"><i class="fas fa-shopping-bag"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">{{ total_orders }}</div>
+            <div class="stat-label">Orders</div>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon orange"><i class="fas fa-book"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">{{ total_books }}</div>
+            <div class="stat-label">Books</div>
+        </div>
+    </div>
+    <div class="stat-item">
+        <div class="stat-icon purple"><i class="fas fa-users"></i></div>
+        <div class="stat-content">
+            <div class="stat-value">{{ total_users }}</div>
+            <div class="stat-label">Users</div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions -->
+<div class="actions-row">
+    <a href="{{ url_for('admin.add_book') }}" class="action-btn">
+        <i class="fas fa-plus"></i>
+        <span>Add Book</span>
+    </a>
+    <a href="{{ url_for('admin.featured_books') }}" class="action-btn">
+        <i class="fas fa-star"></i>
+        <span>Featured</span>
+    </a>
+    <a href="{{ url_for('admin.users') }}" class="action-btn">
+        <i class="fas fa-users"></i>
+        <span>Users</span>
+    </a>
+</div>
+
+<!-- Content Grid -->
+<div class="content-grid">
+    <!-- Recent Books -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Recent Books</span>
+            <a href="{{ url_for('admin.add_book') }}" class="card-link">Add</a>
+        </div>
+        <div class="card-body">
+            {% if recent_books %}
+                {% for book in recent_books %}
+                <div class="book-row">
+                    <img src="{{ book.cover_url }}" alt="{{ book.title }}" class="book-cover" onerror="this.src='https://placehold.co/32x44?text=No'">
+                    <div class="book-info">
+                        <div class="book-title">{{ book.title }}</div>
+                        <div class="book-author">{{ book.author }}</div>
+                    </div>
+                    <div class="book-price">${{ "%.2f"|format(book.price) }}</div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty">No books yet</div>
+            {% endif %}
+        </div>
+    </div>
+    
+    <!-- Overview -->
+    <div class="card">
+        <div class="card-header">
+            <span class="card-title">Overview</span>
+            <a href="{{ url_for('admin.recommendations_dashboard') }}" class="card-link">Analytics</a>
+        </div>
+        <div class="card-body">
+            <div class="activity-row">
+                <div class="activity-icon yellow"><i class="fas fa-star"></i></div>
+                <div>
+                    <div class="activity-text">{{ featured_count if featured_count is defined else 0 }} featured books</div>
+                    <div class="activity-sub">Homepage highlights</div>
+                </div>
+            </div>
+            <div class="activity-row">
+                <div class="activity-icon blue"><i class="fas fa-shopping-cart"></i></div>
+                <div>
+                    <div class="activity-text">${{ "%.2f"|format(total_revenue) }} revenue</div>
+                    <div class="activity-sub">{{ total_orders }} orders</div>
+                </div>
+            </div>
+            <div class="activity-row">
+                <div class="activity-icon purple"><i class="fas fa-user-plus"></i></div>
+                <div>
+                    <div class="activity-text">{{ total_users }} users</div>
+                    <div class="activity-sub">Registered</div>
+                </div>
+            </div>
+            <div class="activity-row">
+                <div class="activity-icon orange"><i class="fas fa-book-open"></i></div>
+                <div>
+                    <div class="activity-text">{{ total_books }} books</div>
+                    <div class="activity-sub">In catalog</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- Diff Log (Recommendation Analytics) -->
+    <div class="card" style="grid-column: span 2;">
+        <div class="card-header">
+            <span class="card-title"><i class="fas fa-terminal"></i> Jaccard Similarity Diff Log (Real-time)</span>
+            <span style="font-size: 10px; color: var(--muted-foreground);">Last 10 events</span>
+        </div>
+        <div class="card-body" style="padding: 0;">
+            {% if recommendation_logs %}
+                <div style="max-height: 300px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+                        <thead style="background: hsl(var(--secondary)); border-bottom: 1px solid hsl(var(--border)); position: sticky; top: 0;">
+                            <tr>
+                                <th style="padding: 10px; text-align: left; font-weight: 500;">Time</th>
+                                <th style="padding: 10px; text-align: left; font-weight: 500;">Target Book</th>
+                                <th style="padding: 10px; text-align: left; font-weight: 500;">Top Recommendations & Jaccard Diffs</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for log in recommendation_logs %}
+                            <tr style="border-bottom: 1px solid hsl(var(--border) / 0.5);">
+                                <td style="padding: 10px; color: var(--muted-foreground); white-space: nowrap;">{{ log.timestamp }}</td>
+                                <td style="padding: 10px; font-weight: 500;">{{ log.target_book }}</td>
+                                <td style="padding: 10px;">
+                                    <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                        {% for rec in log.recommendations %}
+                                        <span style="background: hsl(var(--accent)); padding: 2px 8px; border-radius: 4px; font-size: 11px;">
+                                            {{ rec.title }}: <b style="color: #10b981;">{{ "%.4f"|format(rec.score) }}</b>
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="empty">No recommendation activity logged yet. Browse books to see logs.</div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Admin Credentials Reference -->
+    <div class="card" style="grid-column: span 2; border-color: rgba(59, 130, 246, 0.3); background: rgba(59, 130, 246, 0.02);">
+        <div class="card-header" style="border-bottom-color: rgba(59, 130, 246, 0.2);">
+            <span class="card-title" style="color: #3b82f6;"><i class="fas fa-shield-alt"></i> Administrative Access Info</span>
+        </div>
+        <div class="card-body">
+            <div style="display: flex; gap: 24px; align-items: center;">
+                <div>
+                    <div style="font-size: 10px; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 4px;">Admin Email</div>
+                    <div style="font-size: 14px; font-weight: 600; font-family: monospace;">admin@bookify.com</div>
+                </div>
+                <div style="width: 1px; height: 32px; background: hsl(var(--border));"></div>
+                <div>
+                    <div style="font-size: 10px; text-transform: uppercase; color: var(--muted-foreground); margin-bottom: 4px;">Access Level</div>
+                    <div style="font-size: 13px; font-weight: 500; color: #10b981;"><i class="fas fa-check-circle"></i> Full Database Access</div>
+                </div>
+                <div style="margin-left: auto;">
+                    <span style="font-size: 11px; color: var(--muted-foreground); font-style: italic;">Note: Keep these credentials secure. Password is set during registration.</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

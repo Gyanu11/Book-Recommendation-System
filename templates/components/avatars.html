@@ -1,0 +1,105 @@
+{# Avatar Component Macro - Usage: {% from "components/avatars.html" import avatar %} #}
+
+{% macro avatar(avatar_id=1, size=48, username="") %}
+{% set colors = {
+    1: {"bg": "#3b82f6", "icon": "user", "pattern": "solid"},
+    2: {"bg": "#8b5cf6", "icon": "user-astronaut", "pattern": "gradient"},
+    3: {"bg": "#ec4899", "icon": "user-ninja", "pattern": "solid"},
+    4: {"bg": "#f97316", "icon": "user-graduate", "pattern": "gradient"},
+    5: {"bg": "#10b981", "icon": "user-shield", "pattern": "solid"},
+    6: {"bg": "#06b6d4", "icon": "user-tie", "pattern": "gradient"},
+    7: {"bg": "#f59e0b", "icon": "user-secret", "pattern": "solid"},
+    8: {"bg": "#ef4444", "icon": "user-md", "pattern": "gradient"}
+} %}
+{% set av = colors.get(avatar_id, colors[1]) %}
+<div class="avatar-wrapper" style="width: {{ size }}px; height: {{ size }}px; position: relative;">
+    <div style="width: 100%; height: 100%; border-radius: 50%; 
+        {% if av.pattern == 'gradient' %}
+        background: linear-gradient(135deg, {{ av.bg }}, {{ av.bg|adjust_brightness(-30) }});
+        {% else %}
+        background: {{ av.bg }};
+        {% endif %}
+        display: flex; align-items: center; justify-content: center;
+        box-shadow: 0 4px 12px {{ av.bg }}40;
+        position: relative; overflow: hidden;">
+        <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+            background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 50%);"></div>
+        {% if username %}
+        <span style="color: white; font-weight: 700; font-size: {{ size * 0.4 }}px; position: relative; z-index: 1;">
+            {{ username[0]|upper }}
+        </span>
+        {% else %}
+        <i class="fas fa-{{ av.icon }}" style="color: white; font-size: {{ size * 0.45 }}px; position: relative; z-index: 1;"></i>
+        {% endif %}
+    </div>
+</div>
+{% endmacro %}
+
+{% macro avatar_selector(current_avatar_id=1, username="") %}
+<div class="avatar-selector">
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;">
+        {% for i in range(1, 9) %}
+        {% set colors = {
+            1: {"bg": "#3b82f6", "icon": "user"},
+            2: {"bg": "#8b5cf6", "icon": "user-astronaut"},
+            3: {"bg": "#ec4899", "icon": "user-ninja"},
+            4: {"bg": "#f97316", "icon": "user-graduate"},
+            5: {"bg": "#10b981", "icon": "user-shield"},
+            6: {"bg": "#06b6d4", "icon": "user-tie"},
+            7: {"bg": "#f59e0b", "icon": "user-secret"},
+            8: {"bg": "#ef4444", "icon": "user-md"}
+        } %}
+        {% set av = colors[i] %}
+        <form method="POST" action="{{ url_for('main.update_avatar') }}" style="display: contents;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="avatar_id" value="{{ i }}">
+            <button type="submit" 
+                class="avatar-option {% if i == current_avatar_id %}selected{% endif %}"
+                style="width: 100%; aspect-ratio: 1; border-radius: 50%; 
+                    background: linear-gradient(135deg, {{ av.bg }}, {{ av.bg|adjust_brightness(-30) }});
+                    border: 3px solid {% if i == current_avatar_id %}white{% else %}transparent{% endif %};
+                    cursor: pointer; display: flex; align-items: center; justify-content: center;
+                    transition: all 0.2s; position: relative; overflow: hidden;">
+                <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+                    background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.25) 0%, transparent 50%);"></div>
+                {% if username %}
+                <span style="color: white; font-weight: 700; font-size: 18px; position: relative; z-index: 1;">
+                    {{ username[0]|upper }}
+                </span>
+                {% else %}
+                <i class="fas fa-{{ av.icon }}" style="color: white; font-size: 20px; position: relative; z-index: 1;"></i>
+                {% endif %}
+                {% if i == current_avatar_id %}
+                <div style="position: absolute; bottom: -2px; right: -2px; width: 20px; height: 20px; 
+                    background: #22c55e; border-radius: 50%; display: flex; align-items: center; justify-content: center;
+                    border: 2px solid var(--card);">
+                    <i class="fas fa-check" style="color: white; font-size: 10px;"></i>
+                </div>
+                {% endif %}
+            </button>
+        </form>
+        {% endfor %}
+    </div>
+</div>
+<style>
+.avatar-option:hover {
+    transform: scale(1.08);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+}
+.avatar-option.selected {
+    box-shadow: 0 0 0 3px var(--primary), 0 4px 16px rgba(0,0,0,0.3);
+}
+</style>
+{% endmacro %}
+
+{% macro avatar_small(avatar_id=1, size=32) %}
+{% set colors = ["#3b82f6", "#8b5cf6", "#ec4899", "#f97316", "#10b981", "#06b6d4", "#f59e0b", "#ef4444"] %}
+{% set bg = colors[(avatar_id - 1) % 8] %}
+<div style="width: {{ size }}px; height: {{ size }}px; border-radius: 50%; 
+    background: linear-gradient(135deg, {{ bg }}, {{ bg|adjust_brightness(-30) }});
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 6px {{ bg }}30;">
+    <div style="width: 100%; height: 100%; border-radius: 50%; 
+        background: radial-gradient(circle at 30% 30%, rgba(255,255,255,0.2) 0%, transparent 50%);"></div>
+</div>
+{% endmacro %}

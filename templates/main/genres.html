@@ -1,0 +1,450 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="genre-page-container">
+    <!-- Page Header with Breadcrumb -->
+    <div class="page-header">
+        <nav class="breadcrumb-nav">
+            <a href="{{ url_for('main.index') }}" class="breadcrumb-link">
+                <i class="fas fa-home"></i>
+                <span>Home</span>
+            </a>
+            <i class="fas fa-chevron-right breadcrumb-separator"></i>
+            <span class="breadcrumb-current">Genres</span>
+        </nav>
+        
+        <div class="header-content">
+            <div class="header-badge">
+                <i class="fas fa-layer-group"></i>
+                <span>Browse</span>
+            </div>
+            <h1 class="page-title">All Genres</h1>
+            <p class="page-description">Explore our collection organized by category. Find your next favorite read.</p>
+        </div>
+    </div>
+
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+        <div class="stat-item">
+            <div class="stat-icon">
+                <i class="fas fa-book-bookmark"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">{{ genres|length }}</span>
+                <span class="stat-label">Categories</span>
+            </div>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <div class="stat-icon">
+                <i class="fas fa-books"></i>
+            </div>
+            <div class="stat-info">
+                <span class="stat-value">{{ genres|sum(attribute='1') if genres else 0 }}</span>
+                <span class="stat-label">Total Books</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Genres Grid -->
+    <div class="genres-grid">
+        {% for genre, count in genres %}
+        <a href="{{ url_for('main.books_by_genre', genre=genre) }}" class="genre-card">
+            <div class="genre-card-content">
+                <div class="genre-icon-wrapper">
+                    <i class="fas fa-book genre-icon"></i>
+                </div>
+                <div class="genre-info">
+                    <h3 class="genre-name">{{ genre }}</h3>
+                    <span class="genre-count">
+                        <strong>{{ count }}</strong> book{{ 's' if count != 1 else '' }}
+                    </span>
+                </div>
+            </div>
+            <div class="genre-card-footer">
+                <span class="view-link">
+                    View Collection
+                    <i class="fas fa-arrow-right"></i>
+                </span>
+            </div>
+            <div class="genre-card-glow"></div>
+        </a>
+        {% endfor %}
+    </div>
+
+    <!-- Empty State -->
+    {% if not genres %}
+    <div class="empty-state">
+        <div class="empty-icon">
+            <i class="fas fa-folder-open"></i>
+        </div>
+        <h3 class="empty-title">No Genres Available</h3>
+        <p class="empty-description">No book categories have been created yet.</p>
+        <a href="{{ url_for('main.index') }}" class="btn-primary">
+            <i class="fas fa-home"></i>
+            Back to Home
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+    .genre-page-container {
+        padding: 32px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* Page Header */
+    .page-header {
+        margin-bottom: 32px;
+    }
+
+    .breadcrumb-nav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+    }
+
+    .breadcrumb-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        color: var(--muted-foreground);
+        font-size: 13px;
+        text-decoration: none;
+        padding: 4px 8px;
+        border-radius: calc(var(--radius) - 2px);
+        transition: all 0.15s ease;
+    }
+
+    .breadcrumb-link:hover {
+        color: var(--foreground);
+        background: var(--secondary);
+    }
+
+    .breadcrumb-link i {
+        font-size: 11px;
+    }
+
+    .breadcrumb-separator {
+        font-size: 10px;
+        color: var(--muted-foreground);
+        opacity: 0.5;
+    }
+
+    .breadcrumb-current {
+        font-size: 13px;
+        color: var(--foreground);
+        font-weight: 500;
+    }
+
+    .header-content {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .header-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 14px;
+        background: linear-gradient(135deg, var(--primary) 0%, var(--ring) 100%);
+        border-radius: 9999px;
+        width: fit-content;
+        font-size: 11px;
+        font-weight: 600;
+        color: var(--primary-foreground);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .page-title {
+        font-size: 32px;
+        font-weight: 700;
+        color: var(--foreground);
+        letter-spacing: -0.02em;
+        margin: 0;
+    }
+
+    .page-description {
+        font-size: 15px;
+        color: var(--muted-foreground);
+        margin: 0;
+        max-width: 500px;
+    }
+
+    /* Stats Bar */
+    .stats-bar {
+        display: flex;
+        align-items: center;
+        gap: 24px;
+        padding: 20px 24px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        margin-bottom: 32px;
+    }
+
+    .stat-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .stat-icon {
+        width: 44px;
+        height: 44px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--secondary);
+        border-radius: calc(var(--radius) - 2px);
+        color: var(--primary);
+        font-size: 18px;
+    }
+
+    .stat-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .stat-value {
+        font-size: 20px;
+        font-weight: 700;
+        color: var(--foreground);
+        line-height: 1.2;
+    }
+
+    .stat-label {
+        font-size: 12px;
+        color: var(--muted-foreground);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 40px;
+        background: var(--border);
+    }
+
+    /* Genres Grid */
+    .genres-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 20px;
+    }
+
+    /* Genre Card */
+    .genre-card {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        padding: 24px;
+        text-decoration: none;
+        transition: all 0.2s ease;
+        overflow: hidden;
+    }
+
+    .genre-card:hover {
+        border-color: var(--ring);
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-lg);
+    }
+
+    .genre-card:hover .genre-card-glow {
+        opacity: 1;
+    }
+
+    .genre-card:hover .view-link {
+        color: var(--primary);
+    }
+
+    .genre-card:hover .view-link i {
+        transform: translateX(4px);
+    }
+
+    .genre-card-content {
+        display: flex;
+        align-items: flex-start;
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .genre-icon-wrapper {
+        width: 52px;
+        height: 52px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, var(--secondary) 0%, var(--muted) 100%);
+        border-radius: calc(var(--radius) - 2px);
+        flex-shrink: 0;
+    }
+
+    .genre-icon {
+        font-size: 20px;
+        color: var(--primary);
+    }
+
+    .genre-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .genre-name {
+        font-size: 17px;
+        font-weight: 600;
+        color: var(--foreground);
+        margin: 0 0 4px 0;
+        line-height: 1.3;
+    }
+
+    .genre-count {
+        font-size: 13px;
+        color: var(--muted-foreground);
+    }
+
+    .genre-count strong {
+        color: var(--foreground);
+        font-weight: 600;
+    }
+
+    .genre-card-footer {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .view-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        transition: all 0.15s ease;
+    }
+
+    .view-link i {
+        font-size: 11px;
+        transition: transform 0.15s ease;
+    }
+
+    .genre-card-glow {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, var(--primary), var(--ring));
+        opacity: 0;
+        transition: opacity 0.2s ease;
+    }
+
+    /* Empty State */
+    .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 64px 32px;
+        text-align: center;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+    }
+
+    .empty-icon {
+        width: 80px;
+        height: 80px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: var(--secondary);
+        border-radius: 50%;
+        margin-bottom: 24px;
+    }
+
+    .empty-icon i {
+        font-size: 32px;
+        color: var(--muted-foreground);
+    }
+
+    .empty-title {
+        font-size: 20px;
+        font-weight: 600;
+        color: var(--foreground);
+        margin: 0 0 8px 0;
+    }
+
+    .empty-description {
+        font-size: 14px;
+        color: var(--muted-foreground);
+        margin: 0 0 24px 0;
+        max-width: 300px;
+    }
+
+    .btn-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 24px;
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-radius: var(--radius);
+        font-size: 14px;
+        font-weight: 500;
+        text-decoration: none;
+        transition: all 0.15s ease;
+    }
+
+    .btn-primary:hover {
+        background: var(--ring);
+        transform: translateY(-1px);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .genre-page-container {
+            padding: 20px;
+        }
+
+        .page-title {
+            font-size: 26px;
+        }
+
+        .stats-bar {
+            padding: 16px;
+            gap: 16px;
+        }
+
+        .stat-icon {
+            width: 36px;
+            height: 36px;
+            font-size: 16px;
+        }
+
+        .stat-value {
+            font-size: 18px;
+        }
+
+        .genres-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .genre-card {
+            padding: 20px;
+        }
+    }
+</style>
+{% endblock %}

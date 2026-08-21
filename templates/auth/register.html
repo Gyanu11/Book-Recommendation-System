@@ -1,0 +1,167 @@
+{% extends "auth_base.html" %}
+
+{% block content %}
+<div style="text-align: center; margin-bottom: 18px;">
+    <h1 style="font-size: 22px; font-weight: 600; margin-bottom: 4px;">Create Account</h1>
+    <p style="color: var(--muted-foreground); font-size: 14px;">Join our community of book lovers.</p>
+</div>
+
+<form method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+    {{ form.hidden_tag() }}
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label>Full Name</label>
+            {{ form.username(placeholder="Gyanu ", style="width: 100%; padding: 10px 14px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
+            {% if form.username.errors %}
+                {% for error in form.username.errors %}
+                <span style="font-size: 11px; color: var(--destructive); font-weight: 500; margin-top: 4px; display: block;"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div>
+            <label>Email</label>
+            {{ form.email(placeholder="your@email.com", style="width: 100%; padding: 10px 14px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
+            {% if form.email.errors %}
+                {% for error in form.email.errors %}
+                <span style="font-size: 11px; color: var(--destructive); font-weight: 500; margin-top: 4px; display: block;"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+        <div>
+            <label>Password</label>
+            <div style="position: relative;">
+                {{ form.password(id="p-field", placeholder="••••••••", style="width: 100%; padding: 10px 14px; padding-right: 42px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
+                <button type="button" onclick="togglePassword('p-field', 'p-toggle-icon')"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted-foreground); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;"
+                    onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'">
+                    <i id="p-toggle-icon" class="fas fa-eye-slash" style="font-size: 14px;"></i>
+                </button>
+            </div>
+            {% if form.password.errors %}
+                {% for error in form.password.errors %}
+                <span style="font-size: 11px; color: var(--destructive); font-weight: 500; margin-top: 4px; display: block;"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div>
+            <label>Confirm</label>
+            <div style="position: relative;">
+                {{ form.confirm_password(id="cp-field", placeholder="••••••••", style="width: 100%; padding: 10px 14px; padding-right: 42px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
+                <button type="button" onclick="togglePassword('cp-field', 'cp-toggle-icon')"
+                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted-foreground); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;"
+                    onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'">
+                    <i id="cp-toggle-icon" class="fas fa-eye-slash" style="font-size: 14px;"></i>
+                </button>
+            </div>
+            {% if form.confirm_password.errors %}
+                {% for error in form.confirm_password.errors %}
+                <span style="font-size: 11px; color: var(--destructive); font-weight: 500; margin-top: 4px; display: block;"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Password Rules -->
+    <div style="background: var(--secondary); padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--border);">
+        <div style="display: flex; gap: 10px; font-size: 10px; color: var(--muted-foreground); font-weight: 400; justify-content: space-between; flex-wrap: wrap;">
+            <div id="rule-len"><i class="fas fa-circle" style="font-size: 5px; margin-right: 4px;"></i>8+ Characters</div>
+            <div id="rule-up"><i class="fas fa-circle" style="font-size: 5px; margin-right: 4px;"></i>Uppercase</div>
+            <div id="rule-spec"><i class="fas fa-circle" style="font-size: 5px; margin-right: 4px;"></i>Symbol</div>
+        </div>
+        <div id="p-strength" style="height: 2px; background: var(--border); border-radius: 1px; margin-top: 8px; overflow: hidden; display: none;">
+            <div id="p-bar" style="height: 100%; width: 0%; transition: all 0.3s ease;"></div>
+        </div>
+    </div>
+
+    <div>
+        <label>Admin Code (Optional)</label>
+        {{ form.admin_code(placeholder="Enter admin code if provided", style="width: 100%; padding: 10px 14px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
+    </div>
+
+    <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 2px;">
+        Create Account
+    </button>
+</form>
+
+<div style="margin-top: 14px; text-align: center; font-size: 13px; color: var(--muted-foreground);">
+    Already have an account? <a href="{{ url_for('auth.login') }}" style="color: var(--primary); text-decoration: none; font-weight: 500;">Sign in</a>
+</div>
+
+<script>
+    function togglePassword(inputId, iconId) {
+        const input = document.getElementById(inputId);
+        const icon = document.getElementById(iconId);
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.className = 'fas fa-eye';
+        } else {
+            input.type = 'password';
+            icon.className = 'fas fa-eye-slash';
+        }
+    }
+
+    const pField = document.getElementById('p-field');
+    const pStrength = document.getElementById('p-strength');
+    const pBar = document.getElementById('p-bar');
+    const rLen = document.getElementById('rule-len');
+    const rUp = document.getElementById('rule-up');
+    const rSpec = document.getElementById('rule-spec');
+
+    pField.addEventListener('input', () => {
+        const val = pField.value;
+        if (!val) {
+            pStrength.style.display = 'none';
+            return;
+        }
+
+        pStrength.style.display = 'block';
+
+        let score = 0;
+        const checks = {
+            len: val.length >= 8,
+            up: /[A-Z]/.test(val),
+            spec: /[@$!%*?&]/.test(val)
+        };
+
+        if (checks.len) { 
+            score += 33; 
+            rLen.style.color = '#10b981'; 
+            rLen.querySelector('i').className = 'fas fa-check-circle'; 
+        } else { 
+            rLen.style.color = 'var(--muted-foreground)'; 
+            rLen.querySelector('i').className = 'fas fa-circle'; 
+        }
+
+        if (checks.up) { 
+            score += 33; 
+            rUp.style.color = '#10b981'; 
+            rUp.querySelector('i').className = 'fas fa-check-circle'; 
+        } else { 
+            rUp.style.color = 'var(--muted-foreground)'; 
+            rUp.querySelector('i').className = 'fas fa-circle'; 
+        }
+
+        if (checks.spec) { 
+            score += 34; 
+            rSpec.style.color = '#10b981'; 
+            rSpec.querySelector('i').className = 'fas fa-check-circle'; 
+        } else { 
+            rSpec.style.color = 'var(--muted-foreground)'; 
+            rSpec.querySelector('i').className = 'fas fa-circle'; 
+        }
+
+        pBar.style.width = score + '%';
+        if (score < 40) { 
+            pBar.style.background = 'var(--destructive)'; 
+        } else if (score < 80) { 
+            pBar.style.background = '#f59e0b'; 
+        } else { 
+            pBar.style.background = '#10b981'; 
+        }
+    });
+</script>
+{% endblock %}

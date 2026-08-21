@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Book Library{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* Sidebar Styles */
+        .sidebar-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            width: 260px;
+            background: var(--sidebar);
+            border-right: 1px solid var(--sidebar-border);
+            flex-shrink: 0;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            z-index: 1000;
+        }
+
+        .sidebar-container.collapsed {
+            width: 68px;
+        }
+
+        .sidebar-container.collapsed .sidebar-label,
+        .sidebar-container.collapsed .sidebar-logo-text,
+        .sidebar-container.collapsed .sidebar-subtitle,
+        .sidebar-container.collapsed .sidebar-section-title {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        .sidebar-container.collapsed .sidebar-link {
+            justify-content: center;
+            padding: 12px;
+        }
+
+        .sidebar-container.collapsed .sidebar-link i {
+            margin-right: 0;
+        }
+
+        .sidebar-container.collapsed .sidebar-logo {
+            justify-content: center;
+            padding: 16px 12px;
+        }
+
+        .sidebar-container.collapsed .sidebar-logo-icon {
+            margin-right: 0;
+        }
+
+        .sidebar-container.collapsed .sidebar-footer {
+            padding: 16px 12px;
+            justify-content: center;
+        }
+
+        .sidebar-container.collapsed .sidebar-footer-content {
+            opacity: 0;
+            width: 0;
+            overflow: hidden;
+        }
+
+        /* Logo */
+        .sidebar-logo {
+            display: flex;
+            align-items: center;
+            padding: 20px 16px;
+            margin: 12px;
+            border-radius: var(--radius);
+            background: var(--sidebar-accent);
+            border: 1px solid var(--sidebar-border);
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-logo-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--sidebar-primary);
+            color: var(--sidebar-primary-foreground);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-right: 12px;
+            transition: margin 0.3s ease;
+        }
+
+        .sidebar-logo-text {
+            font-weight: 600;
+            color: var(--sidebar-foreground);
+            font-size: 14px;
+            line-height: 1.2;
+            white-space: nowrap;
+            transition: opacity 0.2s ease, width 0.3s ease;
+        }
+
+        .sidebar-subtitle {
+            font-size: 11px;
+            color: var(--muted-foreground);
+            font-weight: 400;
+            white-space: nowrap;
+            transition: opacity 0.2s ease, width 0.3s ease;
+        }
+
+        /* Navigation */
+        .sidebar-nav {
+            display: flex;
+            flex-direction: column;
+            padding: 0 12px;
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        .sidebar-section {
+            margin-bottom: 8px;
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--muted-foreground);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            padding: 12px 16px 8px;
+            white-space: nowrap;
+            transition: opacity 0.2s ease, width 0.3s ease;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: var(--radius);
+            color: var(--sidebar-foreground);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            margin-bottom: 2px;
+            white-space: nowrap;
+        }
+
+        .sidebar-link i {
+            font-size: 16px;
+            width: 20px;
+            text-align: center;
+            margin-right: 12px;
+            flex-shrink: 0;
+            transition: margin 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .sidebar-label {
+            transition: opacity 0.2s ease, width 0.3s ease;
+        }
+
+        .sidebar-link:hover {
+            background-color: var(--sidebar-accent);
+            color: var(--sidebar-accent-foreground);
+        }
+
+        .sidebar-link:hover i {
+            opacity: 1;
+        }
+
+        .sidebar-link.active {
+            background-color: var(--sidebar-accent);
+            color: var(--sidebar-primary);
+            font-weight: 600;
+        }
+
+        .sidebar-link.active i {
+            opacity: 1;
+            color: var(--sidebar-primary);
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: var(--sidebar-border);
+            margin: 12px 16px;
+        }
+
+        /* Footer */
+        .sidebar-footer {
+            padding: 16px;
+            border-top: 1px solid var(--sidebar-border);
+            display: flex;
+            align-items: center;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar-footer-avatar {
+            width: 32px;
+            height: 32px;
+            background: var(--sidebar-primary);
+            color: var(--sidebar-primary-foreground);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 12px;
+            flex-shrink: 0;
+            margin-right: 12px;
+            transition: margin 0.3s ease;
+        }
+
+        .sidebar-footer-content {
+            overflow: hidden;
+            transition: opacity 0.2s ease, width 0.3s ease;
+        }
+
+        .sidebar-footer-name {
+            font-size: 13px;
+            font-weight: 500;
+            color: var(--sidebar-foreground);
+            white-space: nowrap;
+        }
+
+        .sidebar-footer-email {
+            font-size: 11px;
+            color: var(--muted-foreground);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 140px;
+        }
+
+        /* Mobile Toggle */
+        .mobile-toggle {
+            display: none;
+            width: 40px;
+            height: 40px;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            align-items: center;
+            justify-content: center;
+            color: var(--foreground);
+            cursor: pointer;
+            font-size: 18px;
+        }
+
+        /* Mobile Overlay */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 999;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            opacity: 1;
+        }
+
+        /* Mobile Styles */
+        @media (max-width: 768px) {
+            .mobile-toggle {
+                display: flex;
+            }
+
+            .sidebar-container {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                width: 260px;
+                box-shadow: var(--shadow-xl);
+                transition: left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            }
+
+            .sidebar-container.mobile-open {
+                left: 0;
+            }
+
+            .sidebar-container.collapsed {
+                width: 260px;
+                left: -280px;
+            }
+
+            .sidebar-overlay {
+                display: block;
+            }
+
+            .sidebar-container.collapsed .sidebar-label,
+            .sidebar-container.collapsed .sidebar-logo-text,
+            .sidebar-container.collapsed .sidebar-subtitle,
+            .sidebar-container.collapsed .sidebar-section-title {
+                opacity: 1;
+                width: auto;
+            }
+
+            .sidebar-container.collapsed .sidebar-link {
+                justify-content: flex-start;
+                padding: 10px 16px;
+            }
+
+            .sidebar-container.collapsed .sidebar-link i {
+                margin-right: 12px;
+            }
+        }
+
+        /* Main Content */
+        .main-wrapper {
+            display: flex;
+            flex-direction: column;
+            flex: 1;
+            height: 100vh;
+            overflow: hidden;
+            background: var(--background);
+        }
+
+        /* Top Bar */
+        .top-bar {
+            height: 60px;
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: var(--card);
+            z-index: 100;
+        }
+
+        .search-form {
+            flex: 1;
+            max-width: 400px;
+            position: relative;
+        }
+
+        .search-form input {
+            width: 100%;
+            padding: 8px 14px 8px 38px;
+            background: var(--secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 14px;
+            color: var(--foreground);
+            transition: all 0.15s ease;
+        }
+
+        .search-form input:focus {
+            outline: none;
+            border-color: var(--ring);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+        }
+
+        .search-form i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--muted-foreground);
+            font-size: 14px;
+        }
+
+        .top-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-left: 20px;
+        }
+
+        .notification-btn {
+            width: 36px;
+            height: 36px;
+            background: var(--secondary);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted-foreground);
+            cursor: pointer;
+            border: 1px solid var(--border);
+            transition: all 0.15s ease;
+        }
+
+        .notification-btn:hover {
+            color: var(--foreground);
+            border-color: var(--ring);
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            background: var(--primary);
+            color: var(--primary-foreground);
+            border-radius: var(--radius);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            font-size: 13px;
+            cursor: pointer;
+        }
+
+        /* Content Scroll */
+        .content-scroll {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Flash Messages */
+        .flash-message {
+            margin: 20px;
+            margin-bottom: 0;
+            border-left: 3px solid var(--primary);
+            background: var(--secondary);
+            border-radius: var(--radius);
+            padding: 12px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .flash-message i {
+            color: var(--primary);
+            font-size: 16px;
+        }
+
+        .flash-message span {
+            font-weight: 500;
+            color: var(--foreground);
+            font-size: 14px;
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                padding: 0 16px;
+            }
+
+            .search-form {
+                max-width: 180px;
+            }
+
+            .content-scroll {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body class="main-layout" style="display: flex;">
+
+    <!-- Mobile Overlay -->
+    <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+    <!-- Sidebar -->
+    <nav class="sidebar-container" id="sidebar">
+        <!-- Logo -->
+        <div class="sidebar-logo">
+            <div class="sidebar-logo-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <div>
+                <div class="sidebar-logo-text">Book Library</div>
+                <div class="sidebar-subtitle">Discovery Platform</div>
+            </div>
+        </div>
+
+        <!-- Navigation -->
+        <div class="sidebar-nav">
+            {% if current_user.is_authenticated and current_user.is_admin %}
+            {# Admin-only sidebar - focused on admin tasks #}
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Overview</div>
+                <a href="{{ url_for('admin.dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-line"></i>
+                    <span class="sidebar-label">Dashboard</span>
+                </a>
+                <a href="{{ url_for('admin.recommendations_dashboard') }}" class="sidebar-link {% if request.endpoint == 'admin.recommendations_dashboard' %}active{% endif %}">
+                    <i class="fas fa-chart-pie"></i>
+                    <span class="sidebar-label">Analytics</span>
+                </a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Management</div>
+                <a href="{{ url_for('admin.add_book') }}" class="sidebar-link {% if request.endpoint == 'admin.add_book' %}active{% endif %}">
+                    <i class="fas fa-plus-circle"></i>
+                    <span class="sidebar-label">Add Book</span>
+                </a>
+                <a href="{{ url_for('admin.featured_books') }}" class="sidebar-link {% if request.endpoint == 'admin.featured_books' %}active{% endif %}">
+                    <i class="fas fa-star"></i>
+                    <span class="sidebar-label">Featured Books</span>
+                </a>
+                <a href="{{ url_for('admin.users') }}" class="sidebar-link {% if request.endpoint == 'admin.users' %}active{% endif %}">
+                    <i class="fas fa-users"></i>
+                    <span class="sidebar-label">Users</span>
+                </a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Account</div>
+                <a href="{{ url_for('main.edit_profile') }}" class="sidebar-link {% if request.endpoint == 'main.edit_profile' %}active{% endif %}">
+                    <i class="fas fa-user-cog"></i>
+                    <span class="sidebar-label">Settings</span>
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="sidebar-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="sidebar-label">Sign Out</span>
+                </a>
+            </div>
+
+            {% elif current_user.is_authenticated %}
+            {# Regular authenticated user sidebar #}
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Menu</div>
+                <a href="{{ url_for('main.index') }}" class="sidebar-link {% if request.endpoint == 'main.index' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span class="sidebar-label">Home</span>
+                </a>
+                <a href="{{ url_for('main.all_genres') }}" class="sidebar-link {% if request.endpoint == 'main.all_genres' or request.endpoint == 'main.books_by_genre' %}active{% endif %}">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="sidebar-label">Genres</span>
+                </a>
+                <a href="{{ url_for('main.recommendations_page') }}" class="sidebar-link {% if request.endpoint == 'main.recommendations_page' %}active{% endif %}">
+                    <i class="fas fa-compass"></i>
+                    <span class="sidebar-label">Discover</span>
+                </a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Overview</div>
+                <a href="{{ url_for('main.profile') }}" class="sidebar-link {% if request.endpoint == 'main.profile' %}active{% endif %}">
+                    <i class="fas fa-th-large"></i>
+                    <span class="sidebar-label">Dashboard</span>
+                </a>
+            </div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Library</div>
+                <a href="{{ url_for('main.library') }}" class="sidebar-link {% if request.endpoint == 'main.library' %}active{% endif %}">
+                    <i class="fas fa-book"></i>
+                    <span class="sidebar-label">My Library</span>
+                </a>
+                <a href="{{ url_for('main.watchlist') }}" class="sidebar-link {% if request.endpoint == 'main.watchlist' %}active{% endif %}">
+                    <i class="fas fa-bookmark"></i>
+                    <span class="sidebar-label">Watchlist</span>
+                </a>
+                <a href="{{ url_for('main.cart') }}" class="sidebar-link {% if request.endpoint == 'main.cart' %}active{% endif %}">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span class="sidebar-label">Cart</span>
+                </a>
+                <a href="{{ url_for('main.orders') }}" class="sidebar-link {% if request.endpoint == 'main.orders' or request.endpoint == 'main.order_detail' %}active{% endif %}">
+                    <i class="fas fa-receipt"></i>
+                    <span class="sidebar-label">Orders</span>
+                </a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Account</div>
+                <a href="{{ url_for('main.edit_profile') }}" class="sidebar-link {% if request.endpoint == 'main.edit_profile' %}active{% endif %}">
+                    <i class="fas fa-user-cog"></i>
+                    <span class="sidebar-label">Edit Profile</span>
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="sidebar-link">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span class="sidebar-label">Sign Out</span>
+                </a>
+            </div>
+
+            {% else %}
+            {# Guest/Unauthenticated user sidebar #}
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Menu</div>
+                <a href="{{ url_for('main.index') }}" class="sidebar-link {% if request.endpoint == 'main.index' %}active{% endif %}">
+                    <i class="fas fa-home"></i>
+                    <span class="sidebar-label">Home</span>
+                </a>
+                <a href="{{ url_for('main.all_genres') }}" class="sidebar-link {% if request.endpoint == 'main.all_genres' or request.endpoint == 'main.books_by_genre' %}active{% endif %}">
+                    <i class="fas fa-layer-group"></i>
+                    <span class="sidebar-label">Genres</span>
+                </a>
+                <a href="{{ url_for('main.recommendations_page') }}" class="sidebar-link {% if request.endpoint == 'main.recommendations_page' %}active{% endif %}">
+                    <i class="fas fa-compass"></i>
+                    <span class="sidebar-label">Discover</span>
+                </a>
+            </div>
+
+            <div class="sidebar-divider"></div>
+
+            <div class="sidebar-section">
+                <div class="sidebar-section-title">Account</div>
+                <a href="{{ url_for('auth.login') }}" class="sidebar-link">
+                    <i class="fas fa-user"></i>
+                    <span class="sidebar-label">Sign In</span>
+                </a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Footer -->
+        {% if current_user.is_authenticated %}
+        <div class="sidebar-footer">
+            <div class="sidebar-footer-avatar">
+                {{ current_user.username[0]|upper }}
+            </div>
+            <div class="sidebar-footer-content">
+                <div class="sidebar-footer-name">{{ current_user.username }}</div>
+                <div class="sidebar-footer-email">{{ current_user.email }}</div>
+            </div>
+        </div>
+        {% endif %}
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-wrapper">
+        <header class="top-bar">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <div class="mobile-toggle" id="mobile-toggle">
+                    <i class="fas fa-bars"></i>
+                </div>
+                <form action="{{ url_for('main.index') }}" method="GET" class="search-form">
+                    <i class="fas fa-search"></i>
+                    <input type="text" name="q" placeholder="Search books...">
+                </form>
+            </div>
+
+            <div class="top-bar-actions">
+                {% if current_user.is_authenticated %}
+                <div class="notification-btn" id="notification-bell">
+                    <i class="fas fa-bell"></i>
+                </div>
+                <div class="user-avatar">
+                    {{ current_user.username[0]|upper }}
+                </div>
+                {% else %}
+                <a href="{{ url_for('auth.login') }}" style="font-size: 14px; font-weight: 500; color: var(--muted-foreground); text-decoration: none;">Sign In</a>
+                <a href="{{ url_for('auth.register') }}" class="btn-primary" style="padding: 8px 16px; font-size: 13px; text-decoration: none;">Get Started</a>
+                {% endif %}
+            </div>
+        </header>
+
+        <div class="content-scroll">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                <div>
+                    {% for category, message in messages %}
+                    <div class="flash-message">
+                        <i class="fas fa-info-circle"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <script>
+        // Sidebar collapse on hover (desktop)
+        const sidebar = document.getElementById('sidebar');
+        const mobileToggle = document.getElementById('mobile-toggle');
+        const overlay = document.getElementById('sidebar-overlay');
+
+        // Desktop hover behavior
+        if (window.innerWidth > 768) {
+            sidebar.addEventListener('mouseenter', () => {
+                sidebar.classList.remove('collapsed');
+            });
+
+            sidebar.addEventListener('mouseleave', () => {
+                sidebar.classList.add('collapsed');
+            });
+
+            // Start collapsed on desktop
+            sidebar.classList.add('collapsed');
+        }
+
+        // Mobile toggle
+        if (mobileToggle) {
+            mobileToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('mobile-open');
+                overlay.classList.toggle('active');
+            });
+        }
+
+        // Close on overlay click
+        if (overlay) {
+            overlay.addEventListener('click', () => {
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('active');
+            });
+        }
+
+        // Close sidebar on link click (mobile)
+        const sidebarLinks = sidebar.querySelectorAll('.sidebar-link');
+        sidebarLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                if (window.innerWidth <= 768) {
+                    sidebar.classList.remove('mobile-open');
+                    overlay.classList.remove('active');
+                }
+            });
+        });
+
+        // Notification bell
+        const bell = document.getElementById('notification-bell');
+        if (bell) {
+            bell.addEventListener('click', () => {
+                showToast('<i class="fas fa-check-circle"></i> You are subscribed to updates.');
+                bell.style.color = 'var(--foreground)';
+                bell.style.borderColor = 'var(--ring)';
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed; bottom: 20px; right: 20px; 
+                padding: 12px 18px; z-index: 10000; 
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-left: 3px solid var(--primary);
+                border-radius: var(--radius);
+                display: flex; align-items: center; gap: 10px;
+                font-weight: 500; font-size: 14px;
+                color: var(--foreground);
+                transform: translateY(100px); opacity: 0;
+                transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            `;
+            toast.innerHTML = message;
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateY(0)';
+                toast.style.opacity = '1';
+            }, 10);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateY(20px)';
+                toast.style.opacity = '0';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        // Keyboard shortcut for search
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '/' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                document.querySelector('input[name="q"]').focus();
+            }
+        });
+
+        // Handle resize
+        window.addEventListener('resize', () => {
+            if (window.innerWidth > 768) {
+                sidebar.classList.remove('mobile-open');
+                overlay.classList.remove('active');
+                sidebar.classList.add('collapsed');
+            } else {
+                sidebar.classList.remove('collapsed');
+            }
+        });
+    </script>
+</body>
+
+</html>

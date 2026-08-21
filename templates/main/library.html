@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="padding: 24px; max-width: 1000px; margin: 0 auto;">
+    <!-- Header -->
+    <div style="margin-bottom: 32px;">
+        <h1 style="font-size: 28px; font-weight: 700; margin-bottom: 8px; letter-spacing: -0.02em;">My Library</h1>
+        <p style="color: var(--muted-foreground); font-size: 14px;">Books you've purchased and own.</p>
+    </div>
+
+    <!-- Stats Cards Row -->
+    <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 32px;">
+        <div class="saas-card" style="padding: 20px; text-align: center;">
+            <div style="width: 40px; height: 40px; background: rgba(34, 197, 94, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <i class="fas fa-book" style="color: #22c55e; font-size: 16px;"></i>
+            </div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 2px;">{{ books|length }}</div>
+            <div style="font-size: 12px; color: var(--muted-foreground);">Books Owned</div>
+        </div>
+        <div class="saas-card" style="padding: 20px; text-align: center;">
+            <div style="width: 40px; height: 40px; background: rgba(59, 130, 246, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <i class="fas fa-book-reader" style="color: #3b82f6; font-size: 16px;"></i>
+            </div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 2px;">0</div>
+            <div style="font-size: 12px; color: var(--muted-foreground);">Reading</div>
+        </div>
+        <div class="saas-card" style="padding: 20px; text-align: center;">
+            <div style="width: 40px; height: 40px; background: rgba(249, 115, 22, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <i class="fas fa-check-circle" style="color: #f97316; font-size: 16px;"></i>
+            </div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 2px;">0</div>
+            <div style="font-size: 12px; color: var(--muted-foreground);">Completed</div>
+        </div>
+        <div class="saas-card" style="padding: 20px; text-align: center;">
+            <div style="width: 40px; height: 40px; background: rgba(168, 85, 247, 0.1); border-radius: 10px; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <i class="fas fa-download" style="color: #a855f7; font-size: 16px;"></i>
+            </div>
+            <div style="font-size: 24px; font-weight: 700; margin-bottom: 2px;">{{ books|length }}</div>
+            <div style="font-size: 12px; color: var(--muted-foreground);">Downloads</div>
+        </div>
+    </div>
+
+    {% if books %}
+    <!-- Books Grid -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 20px;">
+        {% for book in books %}
+        <div class="saas-card" style="padding: 0; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s;">
+            <div style="aspect-ratio: 2/3; overflow: hidden; background: var(--secondary);">
+                <img src="{{ book.cover_url }}" alt="{{ book.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            <div style="padding: 14px;">
+                <a href="{{ url_for('main.book_details', book_id=book.id) }}" style="font-size: 13px; font-weight: 500; color: var(--foreground); text-decoration: none; display: block; margin-bottom: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                    {{ book.title }}
+                </a>
+                <p style="font-size: 11px; color: var(--muted-foreground); margin-bottom: 12px;">{{ book.author }}</p>
+                <div style="display: flex; gap: 6px;">
+                    <a href="{{ url_for('main.download_pdf', book_id=book.id) }}" class="btn-primary" style="flex: 1; padding: 6px 10px; font-size: 11px; text-decoration: none; text-align: center;">
+                        <i class="fas fa-download"></i>
+                    </a>
+                    <a href="{{ url_for('main.book_details', book_id=book.id) }}" class="btn-saas-outline" style="flex: 1; padding: 6px 10px; font-size: 11px; text-decoration: none; text-align: center;">
+                        View
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="saas-card" style="padding: 64px 32px; text-align: center;">
+        <div style="width: 64px; height: 64px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+            <i class="fas fa-book" style="font-size: 24px; color: var(--muted-foreground);"></i>
+        </div>
+        <h3 style="font-size: 18px; font-weight: 600; margin-bottom: 8px;">Your library is empty</h3>
+        <p style="color: var(--muted-foreground); font-size: 14px; margin-bottom: 20px; max-width: 300px; margin-left: auto; margin-right: auto;">Purchase books to add them to your library and start reading.</p>
+        <a href="{{ url_for('main.index') }}" class="btn-primary" style="padding: 10px 20px; text-decoration: none;">
+            Browse Books
+        </a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

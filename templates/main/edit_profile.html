@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% from "components/avatars.html" import avatar, avatar_selector %}
+
+{% block content %}
+<style>
+    .edit-profile-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 60px);
+        padding: 24px;
+        position: relative;
+    }
+    
+    .edit-profile-wrapper {
+        width: 100%;
+        max-width: 440px;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .edit-profile-header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+    
+    .edit-profile-icon {
+        width: 44px;
+        height: 44px;
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        margin: 0 auto 14px;
+    }
+    
+    .edit-profile-title {
+        margin: 0;
+        color: var(--foreground);
+        font-size: 20px;
+        font-weight: 600;
+    }
+    
+    .edit-profile-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) + 4px);
+        padding: 32px;
+        box-shadow: var(--shadow-xl);
+    }
+    
+    .avatar-section {
+        text-align: center;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .avatar-name {
+        font-size: 16px;
+        font-weight: 600;
+        margin-top: 12px;
+    }
+    
+    .avatar-date {
+        font-size: 12px;
+        color: var(--muted-foreground);
+        margin-top: 4px;
+    }
+    
+    .avatar-selector-section {
+        margin-bottom: 20px;
+    }
+    
+    .avatar-selector-title {
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 12px;
+        text-align: center;
+    }
+    
+    .edit-profile-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: var(--foreground);
+        margin-bottom: 8px;
+    }
+    
+    .form-group input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid var(--input);
+        border-radius: var(--radius);
+        background: var(--background);
+        color: var(--foreground);
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.15s;
+    }
+    
+    .form-group input:focus {
+        outline: none;
+        border-color: var(--ring);
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    
+    .form-group input::placeholder {
+        color: var(--muted-foreground);
+    }
+    
+    .form-error {
+        font-size: 12px;
+        color: var(--destructive);
+        font-weight: 500;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .form-footer {
+        margin-top: 16px;
+        text-align: center;
+        font-size: 13px;
+    }
+    
+    .form-footer a {
+        color: var(--primary);
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .form-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+        margin-top: 4px;
+    }
+    
+    .danger-zone {
+        margin-top: 20px;
+        padding-top: 20px;
+        border-top: 1px solid var(--border);
+        text-align: center;
+    }
+    
+    .delete-btn {
+        padding: 10px 16px;
+        font-size: 13px;
+        background: transparent;
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        border-radius: var(--radius);
+        color: #ef4444;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.15s;
+    }
+    
+    .delete-btn:hover {
+        background: rgba(239, 68, 68, 0.1);
+    }
+    
+    /* Modal */
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+    }
+    
+    .modal-content {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: calc(var(--radius) + 8px);
+        padding: 24px;
+        max-width: 400px;
+        width: 90%;
+    }
+    
+    .modal-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+    }
+    
+    .modal-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(239, 68, 68, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    
+    .modal-icon i {
+        color: #ef4444;
+        font-size: 18px;
+    }
+    
+    .modal-title {
+        font-size: 18px;
+        font-weight: 600;
+    }
+    
+    .modal-description {
+        font-size: 14px;
+        color: var(--muted-foreground);
+        margin-bottom: 20px;
+    }
+    
+    .modal-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+    }
+    
+    .modal-cancel-btn {
+        padding: 10px 18px;
+        font-size: 13px;
+        background: var(--secondary);
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        color: var(--foreground);
+        cursor: pointer;
+    }
+    
+    .modal-delete-btn {
+        padding: 10px 18px;
+        font-size: 13px;
+        background: #ef4444;
+        border: none;
+        border-radius: var(--radius);
+        color: white;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+</style>
+
+<div class="edit-profile-container">
+    <div class="edit-profile-wrapper">
+        <!-- Header -->
+        <div class="edit-profile-header">
+            <div class="edit-profile-icon">
+                <i class="fas fa-user"></i>
+            </div>
+            <h2 class="edit-profile-title">Edit Profile</h2>
+        </div>
+
+        <!-- Form Card -->
+        <div class="edit-profile-card">
+            <!-- Avatar Section -->
+            <div class="avatar-section">
+                {{ avatar(current_user.avatar_id, size=64, username=current_user.username) }}
+                <div class="avatar-name">{{ current_user.username }}</div>
+                <div class="avatar-date">Member since {{ current_user.created_at.strftime('%B %Y') }}</div>
+            </div>
+
+            <!-- Avatar Selector -->
+            <div class="avatar-selector-section">
+                <div class="avatar-selector-title">Choose your avatar</div>
+                {{ avatar_selector(current_user.avatar_id, current_user.username) }}
+            </div>
+
+            <form method="POST" class="edit-profile-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label>Username</label>
+                    {{ form.username(placeholder="Enter your username", value=current_user.username) }}
+                    {% if form.username.errors %}
+                        {% for error in form.username.errors %}
+                        <span class="form-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Email</label>
+                    {{ form.email(placeholder="your@email.com", value=current_user.email) }}
+                    {% if form.email.errors %}
+                        {% for error in form.email.errors %}
+                        <span class="form-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <button type="submit" class="btn-primary submit-btn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </form>
+
+            <div class="form-footer">
+                <a href="{{ url_for('main.profile') }}"><i class="fas fa-arrow-left"></i> Back to Profile</a>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="danger-zone">
+                <button type="button" onclick="openDeleteModal()" class="delete-btn">
+                    <i class="fas fa-trash"></i> Delete Account
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div id="deleteModal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-icon">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <h3 class="modal-title">Delete Account</h3>
+        </div>
+        <p class="modal-description">Are you sure you want to delete your account? All your data will be permanently removed. This action cannot be undone.</p>
+        <div class="modal-actions">
+            <button type="button" onclick="closeDeleteModal()" class="modal-cancel-btn">Cancel</button>
+            <form method="POST" action="{{ url_for('main.delete_account') }}" style="display: inline;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="modal-delete-btn">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    function openDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'flex';
+    }
+    
+    function closeDeleteModal() {
+        document.getElementById('deleteModal').style.display = 'none';
+    }
+    
+    document.getElementById('deleteModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeDeleteModal();
+        }
+    });
+</script>
+{% endblock %}

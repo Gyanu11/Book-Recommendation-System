@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="padding: 24px;">
+    <!-- Header -->
+    <div style="margin-bottom: 24px;">
+        <div style="display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px; margin-bottom: 12px; background: var(--secondary); border-radius: var(--radius); border: 1px solid var(--border);">
+            <i class="fas fa-bookmark" style="color: var(--primary); font-size: 11px;"></i>
+            <span style="font-size: 11px; font-weight: 500; color: var(--muted-foreground); text-transform: uppercase;">Reading List</span>
+        </div>
+        <h1 style="font-size: 24px; font-weight: 600; margin-bottom: 4px;">My Watchlist</h1>
+        <p style="color: var(--muted-foreground); font-size: 14px;">Books you want to read. Track your reading progress.</p>
+    </div>
+
+    <!-- Status Tabs -->
+    <div style="display: flex; gap: 8px; margin-bottom: 24px; flex-wrap: wrap;">
+        <a href="#" onclick="filterItems('all')" class="status-tab active" data-status="all" style="padding: 8px 16px; background: var(--primary); color: var(--primary-foreground); border-radius: var(--radius); font-size: 13px; font-weight: 500; text-decoration: none; border: 1px solid var(--border);">
+            All ({{ items|length }})
+        </a>
+        <a href="#" onclick="filterItems('want_to_read')" class="status-tab" data-status="want_to_read" style="padding: 8px 16px; background: var(--secondary); color: var(--foreground); border-radius: var(--radius); font-size: 13px; font-weight: 500; text-decoration: none; border: 1px solid var(--border);">
+            <i class="fas fa-bookmark" style="margin-right: 4px;"></i> Want to Read ({{ items|selectattr('status', 'equalto', 'want_to_read')|list|length }})
+        </a>
+        <a href="#" onclick="filterItems('reading')" class="status-tab" data-status="reading" style="padding: 8px 16px; background: var(--secondary); color: var(--foreground); border-radius: var(--radius); font-size: 13px; font-weight: 500; text-decoration: none; border: 1px solid var(--border);">
+            <i class="fas fa-book-reader" style="margin-right: 4px;"></i> Reading ({{ items|selectattr('status', 'equalto', 'reading')|list|length }})
+        </a>
+        <a href="#" onclick="filterItems('completed')" class="status-tab" data-status="completed" style="padding: 8px 16px; background: var(--secondary); color: var(--foreground); border-radius: var(--radius); font-size: 13px; font-weight: 500; text-decoration: none; border: 1px solid var(--border);">
+            <i class="fas fa-check-circle" style="margin-right: 4px;"></i> Completed ({{ items|selectattr('status', 'equalto', 'completed')|list|length }})
+        </a>
+    </div>
+
+    {% if items %}
+    <!-- Watchlist Items -->
+    <div style="display: flex; flex-direction: column; gap: 12px;">
+        {% for item in items %}
+        <div class="saas-card watchlist-item" data-status="{{ item.status }}" style="padding: 16px; display: flex; gap: 16px; align-items: center;">
+            <!-- Book Cover -->
+            <div style="width: 80px; height: 110px; flex-shrink: 0; border-radius: var(--radius); overflow: hidden; background: var(--secondary);">
+                <img src="{{ item.book.cover_url }}" alt="{{ item.book.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+            </div>
+            
+            <!-- Book Info -->
+            <div style="flex: 1; min-width: 0;">
+                <a href="{{ url_for('main.book_details', book_id=item.book.id) }}" style="font-size: 15px; font-weight: 600; color: var(--foreground); text-decoration: none; display: block; margin-bottom: 4px;">
+                    {{ item.book.title }}
+                </a>
+                <p style="font-size: 13px; color: var(--muted-foreground); margin-bottom: 8px;">{{ item.book.author }}</p>
+                <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+                    <span class="tag {% if item.status == 'want_to_read' %}blue{% elif item.status == 'reading' %}orange{% else %}green{% endif %}" style="font-size: 10px;">
+                        {% if item.status == 'want_to_read' %}
+                            <i class="fas fa-bookmark" style="margin-right: 3px;"></i> Want to Read
+                        {% elif item.status == 'reading' %}
+                            <i class="fas fa-book-reader" style="margin-right: 3px;"></i> Reading
+                        {% else %}
+                            <i class="fas fa-check-circle" style="margin-right: 3px;"></i> Completed
+                        {% endif %}
+                    </span>
+                    <span style="font-size: 12px; color: var(--muted-foreground);">
+                        Added {{ item.added_at.strftime('%b %d, %Y') }}
+                    </span>
+                </div>
+            </div>
+            
+            <!-- Price & Actions -->
+            <div style="display: flex; flex-direction: column; gap: 8px; align-items: flex-end;">
+                <span style="font-size: 16px; font-weight: 600; color: var(--primary);">${{ "%.2f"|format(item.book.price) }}</span>
+                
+                <div style="display: flex; gap: 8px;">
+                    <!-- Status Dropdown -->
+                    <form method="POST" action="{{ url_for('main.update_watchlist_status', item_id=item.id) }}" style="display: inline;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <select name="status" onchange="this.form.submit()" style="padding: 6px 10px; font-size: 12px; background: var(--secondary); border: 1px solid var(--border); border-radius: var(--radius); color: var(--foreground); cursor: pointer;">
+                            <option value="want_to_read" {% if item.status == 'want_to_read' %}selected{% endif %}>Want to Read</option>
+                            <option value="reading" {% if item.status == 'reading' %}selected{% endif %}>Reading</option>
+                            <option value="completed" {% if item.status == 'completed' %}selected{% endif %}>Completed</option>
+                        </select>
+                    </form>
+                    
+                    <!-- Add to Cart -->
+                    <a href="{{ url_for('main.add_to_cart', book_id=item.book.id) }}" class="btn-primary" style="padding: 6px 12px; font-size: 12px; text-decoration: none;" onclick="event.preventDefault(); document.getElementById('cart-form-{{ item.id }}').submit();">
+                        <i class="fas fa-cart-plus"></i>
+                    </a>
+                    <form id="cart-form-{{ item.id }}" method="POST" action="{{ url_for('main.add_to_cart', book_id=item.book.id) }}" style="display: none;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                    </form>
+                    
+                    <!-- Remove -->
+                    <form method="POST" action="{{ url_for('main.remove_from_watchlist', item_id=item.id) }}" style="display: inline;" onsubmit="return confirm('Remove from watchlist?')">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" style="padding: 6px 10px; font-size: 12px; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: var(--radius); color: #ef4444; cursor: pointer;">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <!-- Empty State -->
+    <div class="saas-card" style="padding: 48px; text-align: center;">
+        <div style="width: 64px; height: 64px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+            <i class="fas fa-bookmark" style="font-size: 24px; color: var(--muted-foreground);"></i>
+        </div>
+        <h3 style="font-size: 16px; font-weight: 600; margin-bottom: 8px;">Your watchlist is empty</h3>
+        <p style="color: var(--muted-foreground); font-size: 14px; margin-bottom: 16px;">Save books you want to read later.</p>
+        <a href="{{ url_for('main.index') }}" class="btn-primary" style="padding: 10px 20px; text-decoration: none;">
+            Browse Books
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function filterItems(status) {
+    // Update tabs
+    document.querySelectorAll('.status-tab').forEach(tab => {
+        if (tab.dataset.status === status) {
+            tab.style.background = 'var(--primary)';
+            tab.style.color = 'var(--primary-foreground)';
+        } else {
+            tab.style.background = 'var(--secondary)';
+            tab.style.color = 'var(--foreground)';
+        }
+    });
+    
+    // Filter items
+    document.querySelectorAll('.watchlist-item').forEach(item => {
+        if (status === 'all' || item.dataset.status === status) {
+            item.style.display = 'flex';
+        } else {
+            item.style.display = 'none';
+        }
+    });
+    
+    return false;
+}
+</script>
+{% endblock %}

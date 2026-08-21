@@ -1,0 +1,234 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Add Book{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: calc(100vh - 120px);
+        padding: 24px;
+        position: relative;
+    }
+    
+    .form-wrapper {
+        width: 100%;
+        max-width: 440px;
+        position: relative;
+        z-index: 10;
+    }
+    
+    .form-header {
+        text-align: center;
+        margin-bottom: 28px;
+    }
+    
+    .form-icon {
+        width: 44px;
+        height: 44px;
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+        border-radius: var(--radius);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 700;
+        font-size: 18px;
+        margin: 0 auto 14px;
+    }
+    
+    .form-title {
+        margin: 0;
+        color: hsl(var(--foreground));
+        font-size: 20px;
+        font-weight: 600;
+    }
+    
+    .form-card {
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
+        border-radius: calc(var(--radius) + 4px);
+        padding: 32px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    }
+    
+    .form-card form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 500;
+        color: hsl(var(--foreground));
+        margin-bottom: 8px;
+    }
+    
+    .form-group input,
+    .form-group textarea {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid hsl(var(--input));
+        border-radius: var(--radius);
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.15s;
+    }
+    
+    .form-group input:focus,
+    .form-group textarea:focus {
+        outline: none;
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+        color: hsl(var(--muted-foreground));
+    }
+    
+    .form-group textarea {
+        resize: vertical;
+        min-height: 100px;
+    }
+    
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+    }
+    
+    .form-error {
+        font-size: 12px;
+        color: #ef4444;
+        font-weight: 500;
+        margin-top: 6px;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    
+    .form-footer {
+        margin-top: 16px;
+        text-align: center;
+        font-size: 13px;
+    }
+    
+    .form-footer a {
+        color: hsl(var(--primary));
+        text-decoration: none;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .form-footer a:hover {
+        text-decoration: underline;
+    }
+    
+    .submit-btn {
+        width: 100%;
+        justify-content: center;
+        padding: 12px;
+        margin-top: 4px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="form-container">
+    <div class="form-wrapper">
+        <!-- Header -->
+        <div class="form-header">
+            <div class="form-icon">
+                <i class="fas fa-book"></i>
+            </div>
+            <h2 class="form-title">Add New Book</h2>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            <form method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label>Title</label>
+                    {{ form.title(placeholder="Enter book title") }}
+                    {% if form.title.errors %}
+                        {% for error in form.title.errors %}
+                        <span class="form-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-group">
+                    <label>Author</label>
+                    {{ form.author(placeholder="Enter author name") }}
+                    {% if form.author.errors %}
+                        {% for error in form.author.errors %}
+                        <span class="form-error"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Genre</label>
+                        {{ form.genre(placeholder="e.g., Fiction") }}
+                    </div>
+                    <div class="form-group">
+                        <label>Price ($)</label>
+                        {{ form.price(placeholder="0.00") }}
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Cover Image URL</label>
+                    {{ form.cover_url(placeholder="https://example.com/cover.jpg") }}
+                </div>
+
+                <div class="form-group">
+                    <label>PDF URL</label>
+                    {{ form.pdf_url(placeholder="https://example.com/book.pdf") }}
+                </div>
+
+                <div class="form-group">
+                    <label>Description</label>
+                    {{ form.description(placeholder="Enter book description...", rows="4") }}
+                </div>
+
+                <!-- Featured Toggle -->
+                <div style="background: linear-gradient(135deg, rgba(234, 179, 8, 0.1) 0%, rgba(234, 179, 8, 0.05) 100%); border: 1px solid rgba(234, 179, 8, 0.3); border-radius: var(--radius); padding: 16px; margin-top: 4px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 12px;">
+                            <div style="width: 36px; height: 36px; background: rgba(234, 179, 8, 0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center;">
+                                <i class="fas fa-star" style="color: #eab308; font-size: 16px;"></i>
+                            </div>
+                            <div>
+                                <div style="font-size: 13px; font-weight: 600; color: hsl(var(--foreground));">Featured Book</div>
+                                <div style="font-size: 11px; color: hsl(var(--muted-foreground));">Display on homepage</div>
+                            </div>
+                        </div>
+                        {{ form.is_featured(style="width: 18px; height: 18px; cursor: pointer; accent-color: #eab308;") }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-primary submit-btn">
+                    <i class="fas fa-plus"></i> Add Book
+                </button>
+            </form>
+
+            <div class="form-footer">
+                <a href="{{ url_for('admin.dashboard') }}"><i class="fas fa-arrow-left"></i> Back to Dashboard</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

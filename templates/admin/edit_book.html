@@ -1,0 +1,372 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Edit Book{% endblock %}
+{% block header_title %}Edit Book{% endblock %}
+
+{% block extra_css %}
+<style>
+    .edit-modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s ease;
+    }
+    
+    .edit-modal-overlay.active {
+        opacity: 1;
+        visibility: visible;
+    }
+    
+    .edit-modal {
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
+        border-radius: calc(var(--radius) + 4px);
+        width: 100%;
+        max-width: 380px;
+        padding: 24px;
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+    }
+    
+    .edit-modal-overlay.active .edit-modal {
+        transform: scale(1);
+    }
+    
+    .edit-modal-header {
+        text-align: center;
+        margin-bottom: 20px;
+    }
+    
+    .edit-modal-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+        margin-bottom: 4px;
+    }
+    
+    .edit-modal-subtitle {
+        font-size: 13px;
+        color: hsl(var(--muted-foreground));
+    }
+    
+    .edit-form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+    }
+    
+    .edit-form-group {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+    }
+    
+    .edit-form-label {
+        font-size: 13px;
+        font-weight: 500;
+        color: hsl(var(--foreground));
+    }
+    
+    .edit-form-input {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1px solid hsl(var(--input));
+        border-radius: var(--radius);
+        background: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.15s;
+    }
+    
+    .edit-form-input:focus {
+        outline: none;
+        border-color: hsl(var(--ring));
+        box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+    }
+    
+    .edit-form-input::placeholder {
+        color: hsl(var(--muted-foreground));
+    }
+    
+    .edit-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 8px;
+    }
+    
+    .edit-btn {
+        flex: 1;
+        padding: 11px 16px;
+        border-radius: var(--radius);
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        border: none;
+    }
+    
+    .edit-btn-primary {
+        background: hsl(var(--primary));
+        color: hsl(var(--primary-foreground));
+    }
+    
+    .edit-btn-primary:hover {
+        opacity: 0.9;
+    }
+    
+    .edit-btn-secondary {
+        background: hsl(var(--secondary));
+        color: hsl(var(--foreground));
+        border: 1px solid hsl(var(--border));
+    }
+    
+    .edit-btn-secondary:hover {
+        background: hsl(var(--muted));
+    }
+    
+    .edit-btn-danger {
+        background: hsl(var(--destructive));
+        color: white;
+    }
+    
+    .edit-btn-danger:hover {
+        opacity: 0.9;
+    }
+    
+    /* Star toggle */
+    .star-toggle {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: hsl(var(--secondary));
+        border: 1px solid hsl(var(--border));
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .star-toggle:hover {
+        background: hsl(var(--muted));
+    }
+    
+    .star-toggle i {
+        font-size: 16px;
+        color: hsl(var(--muted-foreground));
+        transition: all 0.2s;
+    }
+    
+    .star-toggle.active {
+        background: rgba(234, 179, 8, 0.15);
+        border-color: rgba(234, 179, 8, 0.3);
+    }
+    
+    .star-toggle.active i {
+        color: #eab308;
+        text-shadow: 0 0 8px rgba(234, 179, 8, 0.6);
+    }
+    
+    /* Delete icon */
+    .delete-icon-btn {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 36px;
+        height: 36px;
+        border-radius: 8px;
+        background: hsl(var(--secondary));
+        border: 1px solid hsl(var(--border));
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .delete-icon-btn:hover {
+        background: rgba(239, 68, 68, 0.15);
+        border-color: rgba(239, 68, 68, 0.3);
+    }
+    
+    .delete-icon-btn:hover i {
+        color: #ef4444;
+    }
+    
+    .delete-icon-btn i {
+        font-size: 14px;
+        color: hsl(var(--muted-foreground));
+        transition: all 0.2s;
+    }
+    
+    /* Confirm modal */
+    .confirm-modal {
+        background: hsl(var(--card));
+        border: 1px solid hsl(var(--border));
+        border-radius: calc(var(--radius) + 4px);
+        width: 100%;
+        max-width: 340px;
+        padding: 24px;
+        text-align: center;
+        transform: scale(0.95);
+        transition: transform 0.3s ease;
+    }
+    
+    .edit-modal-overlay.active .confirm-modal {
+        transform: scale(1);
+    }
+    
+    .confirm-icon {
+        width: 48px;
+        height: 48px;
+        background: rgba(239, 68, 68, 0.15);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+    }
+    
+    .confirm-icon i {
+        font-size: 20px;
+        color: #ef4444;
+    }
+    
+    .confirm-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: hsl(var(--foreground));
+        margin-bottom: 8px;
+    }
+    
+    .confirm-message {
+        font-size: 13px;
+        color: hsl(var(--muted-foreground));
+        line-height: 1.5;
+        margin-bottom: 20px;
+    }
+    
+    .confirm-actions {
+        display: flex;
+        gap: 10px;
+    }
+    
+    .icon-row {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+        margin-top: 16px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Edit Book Modal -->
+<div class="edit-modal-overlay active" id="editModal">
+    <div class="edit-modal">
+        <div class="edit-modal-header">
+            <div class="edit-modal-title">Edit Book</div>
+            <div class="edit-modal-subtitle">{{ book.title }}</div>
+        </div>
+        
+        <form method="POST" class="edit-form" id="editForm">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <input type="hidden" name="is_featured" id="isFeaturedInput" value="{{ '1' if book.is_featured else '0' }}">
+            
+            <div class="edit-form-group">
+                <label class="edit-form-label">Cover URL</label>
+                <input type="url" name="cover_url" class="edit-form-input" value="{{ book.cover_url }}" placeholder="https://example.com/cover.jpg" required>
+            </div>
+            
+            <div class="edit-form-group">
+                <label class="edit-form-label">Price ($)</label>
+                <input type="number" name="price" class="edit-form-input" value="{{ book.price }}" step="0.01" min="0" placeholder="0.00" required>
+            </div>
+            
+            <div class="edit-form-group">
+                <label class="edit-form-label">PDF URL</label>
+                <input type="url" name="pdf_url" class="edit-form-input" value="{{ book.pdf_url or '' }}" placeholder="https://example.com/book.pdf (optional)">
+            </div>
+            
+            <div class="icon-row">
+                <button type="button" class="star-toggle {% if book.is_featured %}active{% endif %}" id="starToggle" title="Toggle Featured">
+                    <i class="fas fa-star"></i>
+                </button>
+                <button type="button" class="delete-icon-btn" id="deleteBtn" title="Delete Book">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+            
+            <div class="edit-actions">
+                <a href="{{ url_for('admin.dashboard') }}" class="edit-btn edit-btn-secondary">Cancel</a>
+                <button type="submit" class="edit-btn edit-btn-primary">
+                    <i class="fas fa-save"></i> Save
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="edit-modal-overlay" id="deleteModal">
+    <div class="confirm-modal">
+        <div class="confirm-icon">
+            <i class="fas fa-trash"></i>
+        </div>
+        <div class="confirm-title">Delete Book?</div>
+        <div class="confirm-message">This action cannot be undone. The book "{{ book.title }}" will be permanently removed.</div>
+        <div class="confirm-actions">
+            <button type="button" class="edit-btn edit-btn-secondary" id="cancelDelete">Cancel</button>
+            <form method="POST" action="{{ url_for('admin.delete_book', book_id=book.id) }}" style="flex: 1;">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button type="submit" class="edit-btn edit-btn-danger" style="width: 100%;">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+// Star toggle functionality
+const starToggle = document.getElementById('starToggle');
+const isFeaturedInput = document.getElementById('isFeaturedInput');
+
+starToggle.addEventListener('click', function() {
+    this.classList.toggle('active');
+    const isActive = this.classList.contains('active');
+    isFeaturedInput.value = isActive ? '1' : '0';
+});
+
+// Delete confirmation modal
+const deleteBtn = document.getElementById('deleteBtn');
+const deleteModal = document.getElementById('deleteModal');
+const cancelDelete = document.getElementById('cancelDelete');
+
+deleteBtn.addEventListener('click', function() {
+    deleteModal.classList.add('active');
+});
+
+cancelDelete.addEventListener('click', function() {
+    deleteModal.classList.remove('active');
+});
+
+// Close delete modal on overlay click
+deleteModal.addEventListener('click', function(e) {
+    if (e.target === this) {
+        this.classList.remove('active');
+    }
+});
+</script>
+{% endblock %}

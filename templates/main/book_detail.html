@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div style="max-width: 1000px; margin: 0 auto; padding: 24px;">
+    <div style="display: flex; gap: 32px; align-items: flex-start; flex-wrap: wrap; margin-bottom: 40px;">
+        <!-- Book Cover -->
+        <div style="width: 200px; height: 300px; border-radius: var(--radius); overflow: hidden; border: 1px solid var(--border); flex-shrink: 0; background: var(--secondary);">
+            <img src="{{ book.cover_url }}" alt="{{ book.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+        </div>
+
+        <!-- Book Info -->
+        <div style="flex: 1; min-width: 260px;">
+            <span class="tag blue" style="margin-bottom: 10px; display: inline-block;">{{ book.genre }}</span>
+            <h1 style="font-size: 28px; font-weight: 600; margin-bottom: 6px; line-height: 1.2;">{{ book.title }}</h1>
+            <p style="font-size: 16px; color: var(--muted-foreground); margin-bottom: 12px; font-weight: 400;">{{ book.author }}</p>
+            
+            <!-- Rating -->
+            {% if avg_rating > 0 %}
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 20px;">
+                <div style="display: flex; gap: 2px;">
+                    {% for i in range(1, 6) %}
+                        {% if i <= avg_rating|round %}
+                        <i class="fas fa-star" style="color: #f59e0b; font-size: 14px;"></i>
+                        {% else %}
+                        <i class="fas fa-star" style="color: var(--border); font-size: 14px;"></i>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <span style="font-size: 13px; color: var(--muted-foreground);">{{ "%.1f"|format(avg_rating) }} ({{ reviews|length }} review{{ 's' if reviews|length != 1 else '' }})</span>
+            </div>
+            {% endif %}
+
+            <div style="display: flex; align-items: center; gap: 16px; margin-bottom: 24px; padding: 14px 18px; background: var(--secondary); border-radius: var(--radius); border: 1px solid var(--border); flex-wrap: wrap;">
+                <div>
+                    <div style="font-size: 11px; color: var(--muted-foreground); text-transform: uppercase; font-weight: 500; margin-bottom: 2px;">Price</div>
+                    <div style="font-size: 20px; font-weight: 600; color: var(--primary);">${{ "%.2f"|format(book.price) }}</div>
+                </div>
+                <div style="width: 1px; height: 28px; background: var(--border);"></div>
+                <div>
+                    <div style="font-size: 11px; color: var(--muted-foreground); text-transform: uppercase; font-weight: 500; margin-bottom: 2px;">Status</div>
+                    <div style="font-size: 13px; font-weight: 500;">
+                        {% if has_purchased or current_user.is_admin %}
+                        <span style="color: #10b981;"><i class="fas fa-check-circle"></i> Owned</span>
+                        {% else %}
+                        <span style="color: var(--primary);">Available</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                {% if not has_purchased and not current_user.is_admin %}
+                {% if not in_cart %}
+                <form action="{{ url_for('main.add_to_cart', book_id=book.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="btn-primary" style="padding: 10px 24px; font-size: 13px;">
+                        <i class="fas fa-shopping-cart"></i> Add to Cart
+                    </button>
+                </form>
+                {% else %}
+                <a href="{{ url_for('main.cart') }}" class="btn-saas-outline" style="padding: 10px 24px; font-size: 13px; text-decoration: none;">
+                    <i class="fas fa-shopping-cart"></i> In Cart
+                </a>
+                {% endif %}
+                {% endif %}
+                
+                {% if has_purchased or current_user.is_admin %}
+                <a href="{{ book.pdf_url }}" target="_blank" class="btn-primary" style="padding: 10px 24px; font-size: 13px; text-decoration: none;">
+                    <i class="fas fa-book-open"></i> Read Now
+                </a>
+                <a href="{{ url_for('main.download_pdf', book_id=book.id) }}" class="btn-saas-outline" style="padding: 10px 24px; font-size: 13px; text-decoration: none;">
+                    <i class="fas fa-download"></i> Download
+                </a>
+                {% endif %}
+                
+                <!-- Watchlist Button -->
+                {% if current_user.is_authenticated %}
+                {% if not in_watchlist %}
+                <form action="{{ url_for('main.add_to_watchlist', book_id=book.id) }}" method="POST" style="display: inline;">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit" class="btn-saas-outline" style="padding: 10px 24px; font-size: 13px;">
+                        <i class="fas fa-bookmark"></i> Add to Watchlist
+                    </button>
+                </form>
+                {% else %}
+                <a href="{{ url_for('main.watchlist') }}" class="btn-saas-outline" style="padding: 10px 24px; font-size: 13px; text-decoration: none; background: rgba(34, 197, 94, 0.1); border-color: rgba(34, 197, 94, 0.2); color: #22c55e;">
+                    <i class="fas fa-bookmark"></i> In Watchlist
+                </a>
+                {% endif %}
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Description -->
+    <div style="margin-bottom: 40px;">
+        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 12px;">Description</h2>
+        <p style="color: var(--muted-foreground); font-size: 14px; line-height: 1.7; max-width: 800px;">{{ book.description }}</p>
+    </div>
+
+    <!-- Similar Books -->
+    {% if recommendations %}
+    <div style="margin-bottom: 40px;">
+        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">Similar Books</h2>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 16px;">
+            {% for rec_book in recommendations %}
+            <a href="{{ url_for('main.book_details', book_id=rec_book.id) }}" class="saas-card" style="padding: 0; overflow: hidden; text-decoration: none;">
+                <div style="height: 180px; overflow: hidden; background: var(--secondary);">
+                    <img src="{{ rec_book.cover_url }}" alt="{{ rec_book.title }}" style="width: 100%; height: 100%; object-fit: cover;">
+                </div>
+                <div style="padding: 12px;">
+                    <h4 style="font-size: 12px; margin-bottom: 3px; line-height: 1.3; color: var(--foreground); font-weight: 500;">{{ rec_book.title }}</h4>
+                    <span class="tag" style="font-size: 9px;">{{ rec_book.genre }}</span>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Reviews Section -->
+    <div style="margin-bottom: 40px;">
+        <h2 style="font-size: 18px; font-weight: 600; margin-bottom: 16px;">Reviews</h2>
+        
+        <!-- Review Form -->
+        {% if current_user.is_authenticated and has_purchased %}
+        {% set user_review = reviews | selectattr('user_id', 'equalto', current_user.id) | first %}
+        {% if not user_review %}
+        <div class="saas-card" style="padding: 20px; margin-bottom: 16px;">
+            <h3 style="font-size: 14px; font-weight: 600; margin-bottom: 12px;">Write a Review</h3>
+            <form action="{{ url_for('main.add_review', book_id=book.id) }}" method="POST">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 13px; color: var(--muted-foreground); margin-bottom: 8px; display: block;">Rating</label>
+                    <div style="display: flex; gap: 8px;">
+                        {% for i in range(1, 6) %}
+                        <label style="cursor: pointer;">
+                            <input type="radio" name="rating" value="{{ i }}" {% if i == 5 %}checked{% endif %} style="display: none;">
+                            <i class="fas fa-star rating-star" data-rating="{{ i }}" style="font-size: 24px; color: var(--border); transition: color 0.2s;"></i>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                
+                <div style="margin-bottom: 12px;">
+                    <label style="font-size: 13px; color: var(--muted-foreground); margin-bottom: 8px; display: block;">Your Review (optional)</label>
+                    <textarea name="content" placeholder="Share your thoughts about this book..." style="width: 100%; min-height: 100px; resize: vertical;"></textarea>
+                </div>
+                
+                <button type="submit" class="btn-primary" style="padding: 10px 20px;">
+                    <i class="fas fa-paper-plane"></i> Submit Review
+                </button>
+            </form>
+        </div>
+        {% endif %}
+        {% endif %}
+        
+        <!-- Reviews List -->
+        {% if reviews %}
+        <div style="display: grid; gap: 12px;">
+            {% for review in reviews %}
+            <div class="saas-card" style="padding: 16px;">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div style="width: 32px; height: 32px; background: var(--primary); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 12px; color: var(--primary-foreground);">
+                            {{ review.author.username[0]|upper }}
+                        </div>
+                        <div>
+                            <span style="font-weight: 500; font-size: 13px; color: var(--foreground);">{{ review.author.username }}</span>
+                            <div style="font-size: 11px; color: var(--muted-foreground);">{{ review.created_at.strftime('%b %d, %Y') }}</div>
+                        </div>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <div style="display: flex; gap: 2px;">
+                            {% for i in range(1, 6) %}
+                                <i class="fas fa-star" style="font-size: 12px; color: {% if i <= review.rating %}#f59e0b{% else %}var(--border){% endif %};"></i>
+                            {% endfor %}
+                        </div>
+                        {% if current_user.is_authenticated and (review.user_id == current_user.id or current_user.is_admin) %}
+                        <form action="{{ url_for('main.delete_review', review_id=review.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Delete this review?')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                            <button type="submit" style="background: none; border: none; color: var(--muted-foreground); cursor: pointer; padding: 4px;">
+                                <i class="fas fa-trash" style="font-size: 12px;"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if review.content %}
+                <p style="color: var(--muted-foreground); font-size: 13px; line-height: 1.6; margin: 0;">{{ review.content }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="saas-card" style="padding: 32px; text-align: center;">
+            <div style="width: 48px; height: 48px; background: var(--secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 12px;">
+                <i class="fas fa-comment" style="color: var(--muted-foreground);"></i>
+            </div>
+            <p style="color: var(--muted-foreground); font-size: 14px;">No reviews yet. Be the first to review!</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+// Rating stars interaction
+document.querySelectorAll('.rating-star').forEach(star => {
+    star.addEventListener('click', function() {
+        const rating = this.dataset.rating;
+        document.querySelectorAll('.rating-star').forEach(s => {
+            if (s.dataset.rating <= rating) {
+                s.style.color = '#f59e0b';
+            } else {
+                s.style.color = 'var(--border)';
+            }
+        });
+    });
+    
+    star.addEventListener('mouseenter', function() {
+        const rating = this.dataset.rating;
+        document.querySelectorAll('.rating-star').forEach(s => {
+            if (s.dataset.rating <= rating) {
+                s.style.color = '#f59e0b';
+            } else {
+                s.style.color = 'var(--border)';
+            }
+        });
+    });
+});
+
+document.querySelector('.rating-star')?.parentElement?.parentElement?.addEventListener('mouseleave', function() {
+    const selected = document.querySelector('input[name="rating"]:checked');
+    if (selected) {
+        const rating = selected.value;
+        document.querySelectorAll('.rating-star').forEach(s => {
+            if (s.dataset.rating <= rating) {
+                s.style.color = '#f59e0b';
+            } else {
+                s.style.color = 'var(--border)';
+            }
+        });
+    }
+});
+
+// Log Jaccard Similarity to Browser Console
+console.log("%c[Jaccard Similarity] Recommendations for: {{ book.title | replace('"', '\\"') }}", "color: #3b82f6; font-weight: bold; font-size: 14px;");
+{% for rec_book in recommendations %}
+console.log("Book: %c{{ rec_book.title | replace('"', '\\"') }}%c | Jaccard Similarity: %c{{ '%.4f'|format(rec_book.jaccard_score|default(0)) }}%c ({{ '%.2f'|format((rec_book.jaccard_score|default(0)) * 100) }}%)", "font-weight: bold;", "", "color: #10b981; font-weight: bold;", "");
+{% endfor %}
+</script>
+{% endblock %}

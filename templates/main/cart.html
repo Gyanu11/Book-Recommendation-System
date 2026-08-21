@@ -1,0 +1,406 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .cart-container {
+        max-width: 720px;
+        margin: 0 auto;
+        padding: 32px 24px;
+    }
+    
+    .cart-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    
+    /* Header */
+    .cart-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--border);
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+    
+    .cart-icon {
+        width: 48px;
+        height: 48px;
+        background: var(--primary);
+        color: var(--primary-foreground);
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+    }
+    
+    .cart-title-group h1 {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    
+    .cart-title-group p {
+        color: var(--muted-foreground);
+        font-size: 13px;
+    }
+    
+    /* Select All */
+    .select-all-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px 24px;
+        background: var(--secondary);
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .select-all-row input {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+    }
+    
+    .select-all-row label {
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+    
+    /* Items */
+    .cart-items {
+        padding: 0;
+    }
+    
+    .cart-item {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        padding: 20px 24px;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .cart-item:last-child {
+        border-bottom: none;
+    }
+    
+    .item-check {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary);
+        flex-shrink: 0;
+    }
+    
+    .item-cover {
+        width: 55px;
+        height: 78px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+    
+    .item-cover img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    
+    .item-info {
+        flex: 1;
+        min-width: 0;
+    }
+    
+    .item-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+    }
+    
+    .item-author {
+        font-size: 12px;
+        color: var(--muted-foreground);
+    }
+    
+    .item-price {
+        font-size: 16px;
+        font-weight: 700;
+        color: var(--primary);
+        margin-left: auto;
+        padding: 0 16px;
+    }
+    
+    .item-remove {
+        background: none;
+        border: none;
+        color: var(--muted-foreground);
+        cursor: pointer;
+        padding: 8px;
+        border-radius: 6px;
+        transition: all 0.15s;
+    }
+    
+    .item-remove:hover {
+        color: var(--destructive);
+        background: rgba(239, 68, 68, 0.1);
+    }
+    
+    /* Summary Footer */
+    .cart-footer {
+        padding: 24px;
+        background: var(--secondary);
+        border-top: 1px solid var(--border);
+    }
+    
+    .summary-rows {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 20px;
+    }
+    
+    .summary-row {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+    }
+    
+    .summary-row .label {
+        color: var(--muted-foreground);
+    }
+    
+    .summary-total {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 16px;
+        border-top: 1px solid var(--border);
+        margin-bottom: 20px;
+    }
+    
+    .summary-total .label {
+        font-size: 15px;
+        font-weight: 600;
+    }
+    
+    .summary-total .value {
+        font-size: 26px;
+        font-weight: 700;
+        color: var(--primary);
+    }
+    
+    .checkout-btn {
+        width: 100%;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 600;
+        justify-content: center;
+        border-radius: 10px;
+    }
+    
+    .footer-links {
+        display: flex;
+        justify-content: center;
+        gap: 24px;
+        margin-top: 16px;
+    }
+    
+    .footer-links a {
+        color: var(--muted-foreground);
+        text-decoration: none;
+        font-size: 12px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    
+    .footer-links a:hover {
+        color: var(--foreground);
+    }
+    
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 60px 40px;
+    }
+    
+    .empty-icon {
+        width: 64px;
+        height: 64px;
+        background: var(--secondary);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+        font-size: 24px;
+        color: var(--muted-foreground);
+    }
+    
+    .empty-state h2 {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    
+    .empty-state p {
+        color: var(--muted-foreground);
+        margin-bottom: 24px;
+        font-size: 14px;
+    }
+</style>
+
+<div class="cart-container">
+    {% if cart_items %}
+    <form action="{{ url_for('main.checkout') }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+        <div class="cart-card">
+            <!-- Header -->
+            <div class="cart-header">
+                <div class="cart-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <div class="cart-title-group">
+                    <h1>Shopping Cart</h1>
+                    <p>{{ cart_items|length }} items in your cart</p>
+                </div>
+            </div>
+            
+            <!-- Select All -->
+            <div class="select-all-row">
+                <input type="checkbox" id="select-all" checked>
+                <label for="select-all">Select all items</label>
+            </div>
+            
+            <!-- Items -->
+            <div class="cart-items">
+                {% for item in cart_items %}
+                <div class="cart-item">
+                    <input type="checkbox" name="selected_items" value="{{ item.id }}" class="item-check" data-price="{{ item.book.price }}" checked>
+                    
+                    <div class="item-cover">
+                        <img src="{{ item.book.cover_url }}" alt="{{ item.book.title }}">
+                    </div>
+                    
+                    <div class="item-info">
+                        <div class="item-title">{{ item.book.title }}</div>
+                        <div class="item-author">by {{ item.book.author }}</div>
+                    </div>
+                    
+                    <div class="item-price">${{ "%.2f"|format(item.book.price) }}</div>
+                    
+                    <button type="button" onclick="removeItem({{ item.id }})" class="item-remove">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                {% endfor %}
+            </div>
+            
+            <!-- Footer Summary -->
+            <div class="cart-footer">
+                <div class="summary-rows">
+                    <div class="summary-row">
+                        <span class="label">Selected Items</span>
+                        <span id="selected-count">{{ cart_items|length }}</span>
+                    </div>
+                    <div class="summary-row">
+                        <span class="label">Processing Fee</span>
+                        <span>$0.00</span>
+                    </div>
+                </div>
+                
+                <div class="summary-total">
+                    <span class="label">Total</span>
+                    <span class="value" id="final-total">${{ "%.2f"|format(total) }}</span>
+                </div>
+                
+                <button type="submit" id="checkout-btn" class="btn-primary checkout-btn">
+                    <i class="fas fa-lock"></i> Proceed to Checkout
+                </button>
+                
+                <div class="footer-links">
+                    <a href="{{ url_for('main.index') }}">
+                        <i class="fas fa-arrow-left"></i> Continue Shopping
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+    {% else %}
+    <div class="cart-card">
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <h2>Your cart is empty</h2>
+            <p>Start exploring our collection to find your next read.</p>
+            <a href="{{ url_for('main.index') }}" class="btn-primary" style="padding: 12px 24px; text-decoration: none;">
+                <i class="fas fa-book"></i> Browse Books
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <form id="remove-form" method="POST" style="display:none;">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+    </form>
+</div>
+
+<script>
+    function removeItem(itemId) {
+        const form = document.getElementById('remove-form');
+        if (form) {
+            form.action = "{{ url_for('main.remove_from_cart', item_id=0) }}".replace('0', itemId);
+            form.submit();
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectAll = document.getElementById('select-all');
+        const checkboxes = document.querySelectorAll('.item-check');
+        const countDisplay = document.getElementById('selected-count');
+        const finalDisplay = document.getElementById('final-total');
+        const checkoutBtn = document.getElementById('checkout-btn');
+
+        function updateSummary() {
+            let count = 0;
+            let total = 0;
+
+            checkboxes.forEach(cb => {
+                if (cb.checked) {
+                    count++;
+                    total += parseFloat(cb.getAttribute('data-price')) || 0;
+                }
+            });
+
+            if (countDisplay) countDisplay.innerText = count;
+            if (finalDisplay) finalDisplay.innerText = '$' + total.toFixed(2);
+
+            if (checkoutBtn) {
+                checkoutBtn.disabled = count === 0;
+                checkoutBtn.style.opacity = count === 0 ? '0.5' : '1';
+                checkoutBtn.style.cursor = count === 0 ? 'not-allowed' : 'pointer';
+            }
+        }
+
+        if (selectAll) {
+            selectAll.addEventListener('change', function () {
+                checkboxes.forEach(cb => cb.checked = selectAll.checked);
+                updateSummary();
+            });
+        }
+
+        checkboxes.forEach(cb => {
+            cb.addEventListener('change', function () {
+                const allChecked = Array.from(checkboxes).every(c => c.checked);
+                if (selectAll) selectAll.checked = allChecked;
+                updateSummary();
+            });
+        });
+
+        updateSummary();
+    });
+</script>
+{% endblock %}

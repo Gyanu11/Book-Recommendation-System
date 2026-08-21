@@ -1,0 +1,265 @@
+{% extends "base.html" %}
+{% from "components/avatars.html" import avatar %}
+
+{% block content %}
+<style>
+    .profile-container {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 40px 24px;
+    }
+    
+    .profile-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    
+    .profile-header {
+        text-align: center;
+        padding: 32px;
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .profile-avatar {
+        margin-bottom: 16px;
+    }
+    
+    .profile-name {
+        font-size: 24px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    
+    .profile-role {
+        display: inline-block;
+        padding: 4px 12px;
+        border-radius: 20px;
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 12px;
+    }
+    
+    .profile-role.admin {
+        background: rgba(168, 85, 247, 0.15);
+        color: #a855f7;
+    }
+    
+    .profile-role.member {
+        background: rgba(59, 130, 246, 0.15);
+        color: #3b82f6;
+    }
+    
+    .profile-email {
+        color: var(--muted-foreground);
+        font-size: 14px;
+        margin-bottom: 4px;
+    }
+    
+    .profile-joined {
+        color: var(--muted-foreground);
+        font-size: 12px;
+    }
+    
+    .profile-stats {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-bottom: 1px solid var(--border);
+    }
+    
+    .stat-item {
+        padding: 20px;
+        text-align: center;
+        border-right: 1px solid var(--border);
+    }
+    
+    .stat-item:last-child {
+        border-right: none;
+    }
+    
+    .stat-value {
+        font-size: 22px;
+        font-weight: 700;
+        margin-bottom: 4px;
+    }
+    
+    .stat-label {
+        font-size: 11px;
+        color: var(--muted-foreground);
+    }
+    
+    .profile-actions {
+        padding: 24px;
+    }
+    
+    .action-btn {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        padding: 14px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        transition: background 0.15s;
+        margin-bottom: 8px;
+    }
+    
+    .action-btn:last-child {
+        margin-bottom: 0;
+    }
+    
+    .action-btn:hover {
+        background: var(--secondary);
+    }
+    
+    .action-icon {
+        width: 40px;
+        height: 40px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+    
+    .action-content {
+        flex: 1;
+    }
+    
+    .action-title {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--foreground);
+    }
+    
+    .action-desc {
+        font-size: 12px;
+        color: var(--muted-foreground);
+    }
+    
+    .action-arrow {
+        color: var(--muted-foreground);
+        font-size: 12px;
+    }
+    
+    .edit-btn {
+        display: block;
+        width: 100%;
+        padding: 14px;
+        text-align: center;
+        text-decoration: none;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+    
+    @media (max-width: 500px) {
+        .profile-stats {
+            grid-template-columns: repeat(2, 1fr);
+        }
+        
+        .stat-item {
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .stat-item:nth-child(2) {
+            border-right: none;
+        }
+        
+        .stat-item:nth-child(3),
+        .stat-item:nth-child(4) {
+            border-bottom: none;
+        }
+    }
+</style>
+
+<div class="profile-container">
+    <div class="profile-card">
+        <!-- Header -->
+        <div class="profile-header">
+            <div class="profile-avatar">
+                {{ avatar(current_user.avatar_id, size=80, username=current_user.username) }}
+            </div>
+            <h1 class="profile-name">{{ current_user.username }}</h1>
+            <span class="profile-role {% if current_user.is_admin %}admin{% else %}member{% endif %}">
+                {% if current_user.is_admin %}Admin{% else %}Member{% endif %}
+            </span>
+            <p class="profile-email">{{ current_user.email }}</p>
+            <p class="profile-joined">
+                <i class="fas fa-calendar-alt"></i> Joined {{ current_user.created_at.strftime('%B %Y') }}
+            </p>
+        </div>
+        
+        <!-- Stats -->
+        <div class="profile-stats">
+            <div class="stat-item">
+                <div class="stat-value">{{ library_count }}</div>
+                <div class="stat-label">Books</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ watchlist_count }}</div>
+                <div class="stat-label">Watchlist</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ review_count }}</div>
+                <div class="stat-label">Reviews</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-value">{{ order_count }}</div>
+                <div class="stat-label">Orders</div>
+            </div>
+        </div>
+        
+        <!-- Actions -->
+        <div class="profile-actions">
+            <a href="{{ url_for('main.library') }}" class="action-btn">
+                <div class="action-icon" style="background: rgba(34, 197, 94, 0.12); color: #22c55e;">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="action-content">
+                    <div class="action-title">My Library</div>
+                    <div class="action-desc">View your purchased books</div>
+                </div>
+                <i class="fas fa-chevron-right action-arrow"></i>
+            </a>
+            
+            <a href="{{ url_for('main.watchlist') }}" class="action-btn">
+                <div class="action-icon" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6;">
+                    <i class="fas fa-bookmark"></i>
+                </div>
+                <div class="action-content">
+                    <div class="action-title">Reading List</div>
+                    <div class="action-desc">Books you want to read</div>
+                </div>
+                <i class="fas fa-chevron-right action-arrow"></i>
+            </a>
+            
+            <a href="{{ url_for('main.orders') }}" class="action-btn">
+                <div class="action-icon" style="background: rgba(168, 85, 247, 0.12); color: #a855f7;">
+                    <i class="fas fa-receipt"></i>
+                </div>
+                <div class="action-content">
+                    <div class="action-title">Order History</div>
+                    <div class="action-desc">View past purchases</div>
+                </div>
+                <i class="fas fa-chevron-right action-arrow"></i>
+            </a>
+            
+            <a href="{{ url_for('main.recommendations_page') }}" class="action-btn">
+                <div class="action-icon" style="background: rgba(249, 115, 22, 0.12); color: #f97316;">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <div class="action-content">
+                    <div class="action-title">Recommendations</div>
+                    <div class="action-desc">Personalized for you</div>
+                </div>
+                <i class="fas fa-chevron-right action-arrow"></i>
+            </a>
+            
+            <a href="{{ url_for('main.edit_profile') }}" class="btn-primary edit-btn" style="margin-top: 16px;">
+                <i class="fas fa-edit"></i> Edit Profile
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
