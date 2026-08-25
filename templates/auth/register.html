@@ -1,98 +1,115 @@
 {% extends "auth_base.html" %}
 
+{% block title %}Create Account{% endblock %}
+{% block hero_badge %}Join Community{% endblock %}
+{% block hero_headline %}Start Your Reading Journey{% endblock %}
+{% block hero_subtext %}Create a free account to get AI recommendations, rate books, and keep track of your reading progress.{% endblock %}
+
 {% block content %}
-<div style="text-align: center; margin-bottom: 18px;">
-    <h1 style="font-size: 22px; font-weight: 600; margin-bottom: 4px;">Create Account</h1>
-    <p style="color: var(--muted-foreground); font-size: 14px;">Join our community of book lovers.</p>
+<div class="auth-title-section">
+    <h1 class="auth-title">Create Account</h1>
+    <p class="auth-subtitle">Join our community of book lovers.</p>
 </div>
 
-<form method="POST" style="display: flex; flex-direction: column; gap: 12px;">
+<form method="POST" class="auth-form">
     {{ form.hidden_tag() }}
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div>
-            <label>Full Name</label>
-            {{ form.username(placeholder="Gyanu ", style="width: 100%; padding: 10px 14px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
+    <div class="auth-form-row">
+        <div class="auth-field-group">
+            <label class="auth-label" for="reg-username">Full Name</label>
+            <div class="auth-input-wrapper">
+                <i class="fas fa-user auth-input-icon"></i>
+                {{ form.username(id="reg-username", class="auth-input", placeholder="Gyanu", autocomplete="name") }}
+            </div>
             {% if form.username.errors %}
                 {% for error in form.username.errors %}
-                <span style="font-size: 11px; color: var(--destructive); font-weight: 500; margin-top: 4px; display: block;"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                <span class="auth-error-msg"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
                 {% endfor %}
             {% endif %}
         </div>
-        <div>
-            <label>Email</label>
-            {{ form.email(placeholder="your@email.com", style="width: 100%; padding: 10px 14px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
+        
+        <div class="auth-field-group">
+            <label class="auth-label" for="reg-email">Email Address</label>
+            <div class="auth-input-wrapper">
+                <i class="fas fa-envelope auth-input-icon"></i>
+                {{ form.email(id="reg-email", class="auth-input", placeholder="your@email.com", autocomplete="email") }}
+            </div>
             {% if form.email.errors %}
                 {% for error in form.email.errors %}
-                <span style="font-size: 11px; color: var(--destructive); font-weight: 500; margin-top: 4px; display: block;"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                <span class="auth-error-msg"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
                 {% endfor %}
             {% endif %}
         </div>
     </div>
 
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-        <div>
-            <label>Password</label>
-            <div style="position: relative;">
-                {{ form.password(id="p-field", placeholder="••••••••", style="width: 100%; padding: 10px 14px; padding-right: 42px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
-                <button type="button" onclick="togglePassword('p-field', 'p-toggle-icon')"
-                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted-foreground); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;"
-                    onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'">
-                    <i id="p-toggle-icon" class="fas fa-eye-slash" style="font-size: 14px;"></i>
+    <div class="auth-form-row">
+        <div class="auth-field-group">
+            <label class="auth-label" for="p-field">Password</label>
+            <div class="auth-input-wrapper">
+                <i class="fas fa-lock auth-input-icon"></i>
+                {{ form.password(id="p-field", class="auth-input has-toggle", placeholder="••••••••", autocomplete="new-password") }}
+                <button type="button" class="auth-pw-toggle" onclick="togglePasswordVisibility('p-field', 'p-toggle-icon')" aria-label="Toggle password visibility">
+                    <i id="p-toggle-icon" class="fas fa-eye-slash"></i>
                 </button>
             </div>
             {% if form.password.errors %}
                 {% for error in form.password.errors %}
-                <span style="font-size: 11px; color: var(--destructive); font-weight: 500; margin-top: 4px; display: block;"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                <span class="auth-error-msg"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
                 {% endfor %}
             {% endif %}
         </div>
-        <div>
-            <label>Confirm</label>
-            <div style="position: relative;">
-                {{ form.confirm_password(id="cp-field", placeholder="••••••••", style="width: 100%; padding: 10px 14px; padding-right: 42px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
-                <button type="button" onclick="togglePassword('cp-field', 'cp-toggle-icon')"
-                    style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted-foreground); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;"
-                    onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'">
-                    <i id="cp-toggle-icon" class="fas fa-eye-slash" style="font-size: 14px;"></i>
+
+        <div class="auth-field-group">
+            <label class="auth-label" for="cp-field">Confirm Password</label>
+            <div class="auth-input-wrapper">
+                <i class="fas fa-shield-alt auth-input-icon"></i>
+                {{ form.confirm_password(id="cp-field", class="auth-input has-toggle", placeholder="••••••••", autocomplete="new-password") }}
+                <button type="button" class="auth-pw-toggle" onclick="togglePasswordVisibility('cp-field', 'cp-toggle-icon')" aria-label="Toggle confirm password visibility">
+                    <i id="cp-toggle-icon" class="fas fa-eye-slash"></i>
                 </button>
             </div>
             {% if form.confirm_password.errors %}
                 {% for error in form.confirm_password.errors %}
-                <span style="font-size: 11px; color: var(--destructive); font-weight: 500; margin-top: 4px; display: block;"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+                <span class="auth-error-msg"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
                 {% endfor %}
             {% endif %}
         </div>
     </div>
 
-    <!-- Password Rules -->
-    <div style="background: var(--secondary); padding: 10px 14px; border-radius: var(--radius); border: 1px solid var(--border);">
-        <div style="display: flex; gap: 10px; font-size: 10px; color: var(--muted-foreground); font-weight: 400; justify-content: space-between; flex-wrap: wrap;">
-            <div id="rule-len"><i class="fas fa-circle" style="font-size: 5px; margin-right: 4px;"></i>8+ Characters</div>
-            <div id="rule-up"><i class="fas fa-circle" style="font-size: 5px; margin-right: 4px;"></i>Uppercase</div>
-            <div id="rule-spec"><i class="fas fa-circle" style="font-size: 5px; margin-right: 4px;"></i>Symbol</div>
+    <!-- Password Strength Box -->
+    <div class="auth-strength-box">
+        <div class="auth-strength-rules">
+            <div id="rule-len" class="auth-rule-item"><i class="fas fa-circle"></i> 8+ Characters</div>
+            <div id="rule-up" class="auth-rule-item"><i class="fas fa-circle"></i> Uppercase Letter</div>
+            <div id="rule-spec" class="auth-rule-item"><i class="fas fa-circle"></i> Symbol (@$!%*?&)</div>
         </div>
-        <div id="p-strength" style="height: 2px; background: var(--border); border-radius: 1px; margin-top: 8px; overflow: hidden; display: none;">
-            <div id="p-bar" style="height: 100%; width: 0%; transition: all 0.3s ease;"></div>
+        <div id="p-strength-container" style="display: none;">
+            <div class="auth-strength-track">
+                <div id="p-bar" class="auth-strength-bar"></div>
+            </div>
         </div>
     </div>
 
-    <div>
-        <label>Admin Code (Optional)</label>
-        {{ form.admin_code(placeholder="Enter admin code if provided", style="width: 100%; padding: 10px 14px; border: 1px solid var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
+    <div class="auth-field-group">
+        <label class="auth-label" for="reg-admin-code">Admin Code (Optional)</label>
+        <div class="auth-input-wrapper">
+            <i class="fas fa-key auth-input-icon"></i>
+            {{ form.admin_code(id="reg-admin-code", class="auth-input", placeholder="Enter admin code if provided") }}
+        </div>
     </div>
 
-    <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; padding: 12px; margin-top: 2px;">
-        Create Account
+    <button type="submit" class="auth-btn-primary">
+        <span>Create Account</span>
+        <i class="fas fa-arrow-right btn-arrow-icon"></i>
     </button>
 </form>
 
-<div style="margin-top: 14px; text-align: center; font-size: 13px; color: var(--muted-foreground);">
-    Already have an account? <a href="{{ url_for('auth.login') }}" style="color: var(--primary); text-decoration: none; font-weight: 500;">Sign in</a>
+<div class="auth-footer-text">
+    Already have an account? <a href="{{ url_for('auth.login') }}" class="auth-link">Sign in</a>
 </div>
 
 <script>
-    function togglePassword(inputId, iconId) {
+    function togglePasswordVisibility(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon = document.getElementById(iconId);
         if (input.type === 'password') {
@@ -105,63 +122,66 @@
     }
 
     const pField = document.getElementById('p-field');
-    const pStrength = document.getElementById('p-strength');
+    const pStrengthContainer = document.getElementById('p-strength-container');
     const pBar = document.getElementById('p-bar');
     const rLen = document.getElementById('rule-len');
     const rUp = document.getElementById('rule-up');
     const rSpec = document.getElementById('rule-spec');
 
-    pField.addEventListener('input', () => {
-        const val = pField.value;
-        if (!val) {
-            pStrength.style.display = 'none';
-            return;
-        }
+    if (pField) {
+        pField.addEventListener('input', () => {
+            const val = pField.value;
+            if (!val) {
+                pStrengthContainer.style.display = 'none';
+                return;
+            }
 
-        pStrength.style.display = 'block';
+            pStrengthContainer.style.display = 'block';
 
-        let score = 0;
-        const checks = {
-            len: val.length >= 8,
-            up: /[A-Z]/.test(val),
-            spec: /[@$!%*?&]/.test(val)
-        };
+            let score = 0;
+            const checks = {
+                len: val.length >= 8,
+                up: /[A-Z]/.test(val),
+                spec: /[@$!%*?&]/.test(val)
+            };
 
-        if (checks.len) { 
-            score += 33; 
-            rLen.style.color = '#10b981'; 
-            rLen.querySelector('i').className = 'fas fa-check-circle'; 
-        } else { 
-            rLen.style.color = 'var(--muted-foreground)'; 
-            rLen.querySelector('i').className = 'fas fa-circle'; 
-        }
+            if (checks.len) { 
+                score += 33; 
+                rLen.style.color = '#34d399'; 
+                rLen.querySelector('i').className = 'fas fa-check-circle'; 
+            } else { 
+                rLen.style.color = 'var(--muted-foreground)'; 
+                rLen.querySelector('i').className = 'fas fa-circle'; 
+            }
 
-        if (checks.up) { 
-            score += 33; 
-            rUp.style.color = '#10b981'; 
-            rUp.querySelector('i').className = 'fas fa-check-circle'; 
-        } else { 
-            rUp.style.color = 'var(--muted-foreground)'; 
-            rUp.querySelector('i').className = 'fas fa-circle'; 
-        }
+            if (checks.up) { 
+                score += 33; 
+                rUp.style.color = '#34d399'; 
+                rUp.querySelector('i').className = 'fas fa-check-circle'; 
+            } else { 
+                rUp.style.color = 'var(--muted-foreground)'; 
+                rUp.querySelector('i').className = 'fas fa-circle'; 
+            }
 
-        if (checks.spec) { 
-            score += 34; 
-            rSpec.style.color = '#10b981'; 
-            rSpec.querySelector('i').className = 'fas fa-check-circle'; 
-        } else { 
-            rSpec.style.color = 'var(--muted-foreground)'; 
-            rSpec.querySelector('i').className = 'fas fa-circle'; 
-        }
+            if (checks.spec) { 
+                score += 34; 
+                rSpec.style.color = '#34d399'; 
+                rSpec.querySelector('i').className = 'fas fa-check-circle'; 
+            } else { 
+                rSpec.style.color = 'var(--muted-foreground)'; 
+                rSpec.querySelector('i').className = 'fas fa-circle'; 
+            }
 
-        pBar.style.width = score + '%';
-        if (score < 40) { 
-            pBar.style.background = 'var(--destructive)'; 
-        } else if (score < 80) { 
-            pBar.style.background = '#f59e0b'; 
-        } else { 
-            pBar.style.background = '#10b981'; 
-        }
-    });
+            pBar.style.width = score + '%';
+            if (score < 40) { 
+                pBar.style.backgroundColor = '#ef4444'; 
+            } else if (score < 80) { 
+                pBar.style.backgroundColor = '#f59e0b'; 
+            } else { 
+                pBar.style.backgroundColor = '#10b981'; 
+            }
+        });
+    }
 </script>
 {% endblock %}
+

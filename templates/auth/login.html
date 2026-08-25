@@ -1,59 +1,60 @@
 {% extends "auth_base.html" %}
 
+{% block title %}Sign In{% endblock %}
+{% block hero_badge %}Welcome Back{% endblock %}
+{% block hero_headline %}Your Literary Journey Continues{% endblock %}
+{% block hero_subtext %}Sign in to access your saved books, personalized recommendations, and active reading lists.{% endblock %}
+
 {% block content %}
-<div style="text-align: center; margin-bottom: 20px;">
-    <h1 style="font-size: 22px; font-weight: 600; margin-bottom: 4px;">Welcome Back</h1>
-    <p style="color: var(--muted-foreground); font-size: 14px;">Sign in to continue to your library.</p>
+<div class="auth-title-section">
+    <h1 class="auth-title">Welcome Back</h1>
+    <p class="auth-subtitle">Sign in to access your personal library.</p>
 </div>
 
-<form method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+<form method="POST" class="auth-form">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <div>
-        <label>Email</label>
-        {{ form.email(placeholder="your@email.com", style="width: 100%; padding: 10px 14px; border: 1px solid
-        var(--input); border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size:
-        14px;") }}
+    <div class="auth-field-group">
+        <label class="auth-label" for="login-email">Email Address</label>
+        <div class="auth-input-wrapper">
+            <i class="fas fa-envelope auth-input-icon"></i>
+            {{ form.email(id="login-email", class="auth-input", placeholder="your@email.com", autocomplete="email") }}
+        </div>
         {% if form.email.errors %}
-        {% for error in form.email.errors %}
-        <span style="font-size: 12px; color: var(--destructive); font-weight: 500; margin-top: 6px; display: block;"><i
-                class="fas fa-exclamation-circle"></i> {{ error }}</span>
-        {% endfor %}
+            {% for error in form.email.errors %}
+            <span class="auth-error-msg"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+            {% endfor %}
         {% endif %}
     </div>
 
-    <div>
-        <label>Password</label>
-        <div style="position: relative;">
-            {{ form.password(id="login-password", placeholder="••••••••", style="width: 100%; padding: 10px 14px; padding-right: 42px; border: 1px solid var(--input);
-            border-radius: var(--radius); background: var(--background); color: var(--foreground); font-size: 14px;") }}
-            <button type="button" id="login-toggle-pw" onclick="togglePassword('login-password', 'login-toggle-pw-icon')"
-                style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: var(--muted-foreground); cursor: pointer; padding: 4px; display: flex; align-items: center; justify-content: center; transition: color 0.2s;"
-                onmouseover="this.style.color='var(--foreground)'" onmouseout="this.style.color='var(--muted-foreground)'">
-                <i id="login-toggle-pw-icon" class="fas fa-eye-slash" style="font-size: 14px;"></i>
+    <div class="auth-field-group">
+        <label class="auth-label" for="login-password">Password</label>
+        <div class="auth-input-wrapper">
+            <i class="fas fa-lock auth-input-icon"></i>
+            {{ form.password(id="login-password", class="auth-input has-toggle", placeholder="••••••••", autocomplete="current-password") }}
+            <button type="button" class="auth-pw-toggle" onclick="togglePasswordVisibility('login-password', 'login-pw-icon')" aria-label="Toggle password visibility">
+                <i id="login-pw-icon" class="fas fa-eye-slash"></i>
             </button>
         </div>
         {% if form.password.errors %}
-        {% for error in form.password.errors %}
-        <span style="font-size: 12px; color: var(--destructive); font-weight: 500; margin-top: 6px; display: block;"><i
-                class="fas fa-exclamation-circle"></i> {{ error }}</span>
-        {% endfor %}
+            {% for error in form.password.errors %}
+            <span class="auth-error-msg"><i class="fas fa-exclamation-circle"></i> {{ error }}</span>
+            {% endfor %}
         {% endif %}
     </div>
 
-    <button type="submit" class="btn-primary"
-        style="width: 100%; justify-content: center; padding: 12px; margin-top: 4px;">
-        Sign In
+    <button type="submit" class="auth-btn-primary">
+        <span>Sign In</span>
+        <i class="fas fa-arrow-right btn-arrow-icon"></i>
     </button>
 </form>
 
-<div style="margin-top: 16px; text-align: center; font-size: 13px; color: var(--muted-foreground);">
-    New here? <a href="{{ url_for('auth.register') }}"
-        style="color: var(--primary); text-decoration: none; font-weight: 500;">Create an account</a>
+<div class="auth-footer-text">
+    Don't have an account? <a href="{{ url_for('auth.register') }}" class="auth-link">Create an account</a>
 </div>
 
 <script>
-    function togglePassword(inputId, iconId) {
+    function togglePasswordVisibility(inputId, iconId) {
         const input = document.getElementById(inputId);
         const icon = document.getElementById(iconId);
         if (input.type === 'password') {
@@ -65,5 +66,4 @@
         }
     }
 </script>
-
 {% endblock %}
