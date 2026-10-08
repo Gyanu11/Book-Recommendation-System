@@ -43,6 +43,8 @@ def create_app(config_class=Config):
 
     return app
 
+# Create Flask Application instance for Vercel deployment
+app = create_app()
+
 if __name__ == '__main__':
-    app = create_app()
     app.run(debug=True)
